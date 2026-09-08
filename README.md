@@ -21,3 +21,7 @@ A static, responsive business website for TecHisab, designed for GitHub Pages.
 
 ## Notes
 This site intentionally does **not** claim TecHisab is an official partner/certified reseller of third-party brands. Platforms such as QuickBooks, Xero, Microsoft, Google Workspace and others are presented as tools/ecosystems the business can work with.
+
+
+### Branding note
+The QuickBooks section references the official QuickBooks logo asset hosted by Intuit. TecHisab branding remains the primary business identity; the QuickBooks mark is shown only to identify the referenced product. QuickBooks is a trademark of Intuit Inc.
