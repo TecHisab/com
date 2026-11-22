@@ -1,27 +1,60 @@
-# TecHisab Website
+# TecHisab Website (`www.techisab.com`)
 
-A static, responsive business website for TecHisab, designed for GitHub Pages.
+**TecHisab** is an ITES & FINTEC company providing Accounting, Finance, Bookkeeping, Payroll, Inventory Management, Tax & VAT Support, BPO, MIS Reporting, Business Software, Website Development, Digital Automation, and Practical Technology Training services.
 
-## Files
-- `index.html` — website structure and content
-- `style.css` — responsive styling, brand system, dark/light mode
-- `script.js` — language switch, theme switch, mobile menu, WhatsApp inquiry form
-- `assets/logo/techisab-logo.png` — official TecHisab logo supplied for this build
+**Taglines:** কাজকে সহজ করুন | *Making Business Simple.*
 
-## GitHub Pages
-1. Upload the repository files to the `main` branch.
-2. In GitHub: **Settings → Pages → Deploy from a branch → main → /(root)**.
-3. Save and allow GitHub Pages to deploy.
+---
 
-## Important before publishing
-- The exact official TecHisab logo is already included at `assets/logo/techisab-logo.png`.
-- Facebook uses the requested profile path `@TechHisab`; the other social links use `@techisab`.
-- Confirm the actual office map pin/location after opening Google Maps/Bing Maps.
-- Add any genuine certifications, registrations, partner badges or client logos only after providing the corresponding proof/details.
+## Tech Stack
 
-## Notes
-This site intentionally does **not** claim TecHisab is an official partner/certified reseller of third-party brands. Platforms such as QuickBooks, Xero, Microsoft, Google Workspace and others are presented as tools/ecosystems the business can work with.
+- **Framework:** React 19 + TypeScript + Vite 6
+- **Styling:** Tailwind CSS v4 (Corporate Blue palette: `#0345A4`, `#02377F`, `#0A63D8`, `#F4F8FF`)
+- **Icons & Visualization:** Lucide React & D3.js (Interactive Business OS chart)
+- **Hosting:** Static build ready for **GitHub Pages**
 
+---
 
-### Branding note
-The QuickBooks section references the official QuickBooks logo asset hosted by Intuit. TecHisab branding remains the primary business identity; the QuickBooks mark is shown only to identify the referenced product. QuickBooks is a trademark of Intuit Inc.
+## Local Development
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+3. Run TypeScript validation and build production bundle:
+   ```bash
+   npm run lint
+   npm run build
+   ```
+   The static production bundle is output to `./dist`.
+
+---
+
+## GitHub Pages Deployment
+
+This repository is configured for deployment strictly via **GitHub Pages** (static hosting, no server-side packages or runtime database required):
+
+1. Push the repository to your `main` branch on GitHub.
+2. In GitHub Repository Settings → **Pages** → **Build and deployment**, select **GitHub Actions** as the source.
+3. The included workflow `.github/workflows/deploy.yml` runs on every push to `main`:
+   - Installs dependencies with Node.js 20 (`npm ci`)
+   - Builds the static bundle (`npm run build`) with `VITE_BASE_PATH=/`
+   - Uploads `./dist` and deploys to GitHub Pages via `actions/deploy-pages@v4`
+4. Custom domain configuration:
+   - `public/CNAME` sets `www.techisab.com` automatically in `./dist`.
+   - `public/404.html` and the restoration snippet in `index.html` preserve client-side routes cleanly on GitHub Pages.
+   - If deploying under `https://<username>.github.io/<repo>/` without a custom domain, set `VITE_BASE_PATH=/<repo>/` in the workflow environment and remove `public/CNAME`.
+
+---
+
+## Contact Information
+
+- **Website:** https://www.techisab.com
+- **Email:** info@techisab.com
+- **Phone / WhatsApp:** +880 1556-615555
+- **Facebook / Instagram:** @TecHishab
+- **Address:** Near Hakkani Pump, Naya Bazar Biswa Road More, Chittagong, Bangladesh, 4216

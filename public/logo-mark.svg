@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 135" fill="none">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@700;800&amp;family=Plus+Jakarta+Sans:wght@800;900&amp;display=swap');
+      .tech-text { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; font-weight: 800; font-size: 38px; fill: #ffffff; letter-spacing: -0.5px; }
+      .hisab-text { font-family: 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 34px; fill: #000000; }
+      .tagline-text { font-family: 'Hind Siliguri', sans-serif; font-weight: 700; font-size: 14px; }
+    </style>
+  </defs>
+
+  <!-- Outer Badge Frame -->
+  <g id="logo-badge">
+    <!-- Top Blue Block with "Tech" -->
+    <path d="M 12 10 L 108 10 A 4 4 0 0 1 112 14 L 112 56 L 8 56 L 8 14 A 4 4 0 0 1 12 10 Z" fill="#0055A5" />
+    <text x="60" y="45" text-anchor="middle" class="tech-text">Tech</text>
+
+    <!-- Bottom White Block with "হিসাব" -->
+    <path d="M 8 56 L 112 56 L 112 104 A 4 4 0 0 1 108 108 L 12 108 A 4 4 0 0 1 8 104 Z" fill="#FFFFFF" stroke="#0055A5" stroke-width="3" />
+    <text x="60" y="94" text-anchor="middle" class="hisab-text">হিসাব</text>
+  </g>
+
+  <!-- Tagline underneath: কাজকে সহজ করুন -->
+  <text x="60" y="125" text-anchor="middle" class="tagline-text">
+    <tspan fill="#000000">কাজকে </tspan>
+    <tspan fill="#0055A5">সহজ </tspan>
+    <tspan fill="#000000">করুন</tspan>
+  </text>
+</svg>

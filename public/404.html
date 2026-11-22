@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting | TecHisab</title>
+    <script>
+      (function () {
+        var l = window.location;
+        var pathSegmentsToKeep = 0;
+        var target =
+          l.protocol +
+          '//' +
+          l.hostname +
+          (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') +
+          '/?/' +
+          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash;
+        l.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <p>Please enable JavaScript or return to <a href="https://www.techisab.com/">TecHisab Home</a>.</p>
+    </noscript>
+  </body>
+</html>
