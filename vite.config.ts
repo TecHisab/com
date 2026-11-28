@@ -4,8 +4,8 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
-  // Support custom base path via VITE_BASE_PATH (default '/' for custom domain www.techisab.com or root user pages)
-  const base = process.env.VITE_BASE_PATH || '/';
+  // Default './' works on both custom domains (www.techisab.com) and GitHub Pages subpaths
+  const base = process.env.VITE_BASE_PATH || './';
 
   return {
     base,
@@ -18,6 +18,16 @@ export default defineConfig(() => {
     build: {
       outDir: 'dist',
       sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-three': ['three'],
+            'vendor-motion': ['motion'],
+            'vendor-icons': ['lucide-react'],
+          },
+        },
+      },
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

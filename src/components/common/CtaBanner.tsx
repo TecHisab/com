@@ -3,6 +3,7 @@ import { ArrowRight, MessageCircle, PhoneCall } from 'lucide-react';
 import { SITE_CONFIG } from '../../data/siteData';
 import { useLanguage } from '../../context/LanguageContext';
 import { BlueAbstractBackdrop } from './BlueAbstractBackdrop';
+import { trackConversion } from '../../utils/analytics';
 
 interface CtaBannerProps {
   headline?: string;
@@ -39,28 +40,35 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({
           {SITE_CONFIG.banglaTagline} &bull; {SITE_CONFIG.englishTagline}
         </p>
 
-        <h3 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-snug">
+        <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-snug">
           {resolvedHeadline}
-        </h3>
+        </h2>
 
         <p className="text-base sm:text-lg text-sky-100/90 max-w-2xl mx-auto leading-relaxed">
           {resolvedSubheadline}
         </p>
 
         <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={onPrimaryClick}
+          <a
+            href="/contact"
+            onClick={(e) => {
+              trackConversion('cta_click', { label: 'cta-banner-primary' });
+              if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                e.preventDefault();
+                onPrimaryClick();
+              }
+            }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white hover:bg-[#F4F8FF] text-[#0345A4] font-bold text-sm shadow-md transition-all cursor-pointer active:scale-98"
           >
             <span>{resolvedButtonText}</span>
             <ArrowRight className="w-4 h-4" />
-          </button>
+          </a>
 
           <a
             href={SITE_CONFIG.contact.whatsappUrl}
             target="_blank"
             rel="noreferrer"
+            onClick={() => trackConversion('whatsapp_click', { label: 'cta-banner-whatsapp' })}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/25 font-semibold text-sm transition-all"
           >
             <MessageCircle className="w-4 h-4 text-emerald-300" />
@@ -69,6 +77,7 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({
 
           <a
             href={`tel:${SITE_CONFIG.contact.phone}`}
+            onClick={() => trackConversion('phone_click', { label: 'cta-banner-phone' })}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-transparent hover:bg-white/10 text-sky-100 border border-white/20 font-semibold text-sm transition-all"
           >
             <PhoneCall className="w-4 h-4" />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { SITE_CONFIG } from '../../data/siteData';
+import { trackConversion } from '../../utils/analytics';
 import {
   MessageSquare,
   X,
@@ -62,6 +63,7 @@ export const QuickHelpChat: React.FC = () => {
     }
     setErrorMessage(null);
     setIsSubmitted(true);
+    trackConversion('quick_help_submit', { category: 'quick_help', label: category });
   };
 
   const handleCopy = async () => {
@@ -160,6 +162,7 @@ export const QuickHelpChat: React.FC = () => {
                     href={whatsappDeepLink()}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() => trackConversion('whatsapp_click', { label: 'quick-help-whatsapp' })}
                     className="inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors"
                   >
                     <Send className="w-3.5 h-3.5" />
@@ -168,6 +171,7 @@ export const QuickHelpChat: React.FC = () => {
 
                   <a
                     href={mailtoLink()}
+                    onClick={() => trackConversion('email_click', { label: 'quick-help-email' })}
                     className="inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white font-semibold transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5" />
@@ -308,6 +312,7 @@ export const QuickHelpChat: React.FC = () => {
               href={SITE_CONFIG.contact.whatsappUrl}
               target="_blank"
               rel="noreferrer"
+              onClick={() => trackConversion('whatsapp_click', { label: 'quick-help-footer-whatsapp' })}
               className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
             >
               <span>WhatsApp</span>
@@ -315,6 +320,7 @@ export const QuickHelpChat: React.FC = () => {
 
             <a
               href={`tel:${SITE_CONFIG.contact.phone}`}
+              onClick={() => trackConversion('phone_click', { label: 'quick-help-footer-phone' })}
               className="inline-flex items-center gap-1 text-[#0B1730] dark:text-slate-300 font-semibold hover:text-[#0345A4]"
             >
               <Phone className="w-3 h-3" />

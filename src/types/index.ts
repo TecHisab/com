@@ -2,16 +2,19 @@ export type NavigationTab =
   | 'home'
   | 'about'
   | 'services'
+  | 'service-detail'
   | 'software'
   | 'training'
   | 'pricing'
   | 'blog'
+  | 'blog-article'
   | 'contact'
   | 'software-tax'
   | 'privacy-policy'
   | 'terms-of-service'
   | 'refund-policy'
-  | 'tax-disclaimer';
+  | 'tax-disclaimer'
+  | 'not-found';
 
 export type UserRole = 'guest' | 'customer' | 'student' | 'admin';
 
@@ -44,6 +47,7 @@ export type ServiceCategoryKey =
 
 export interface ServiceItem {
   id: string;
+  landingSlug?: string;
   title: string;
   category: ServiceCategoryKey;
   categoryLabel: string;
@@ -56,6 +60,41 @@ export interface ServiceItem {
   tag?: string;
   startingRate?: string;
   techSpecs?: ServiceTechnicalSpecs;
+}
+
+export interface ServiceLandingPageData {
+  slug: string;
+  serviceId: string;
+  category: ServiceCategoryKey;
+  primaryKeyword: string;
+  secondaryKeywords: string[];
+  seoTitle: string;
+  seoDescription: string;
+  seoTitleBn: string;
+  seoDescriptionBn: string;
+  h1: string;
+  h1Bn: string;
+  badge: string;
+  badgeBn: string;
+  heroSummary: string;
+  heroSummaryBn: string;
+  overviewParagraphs: string[];
+  overviewParagraphsBn: string[];
+  targetCustomers: { title: string; detail: string }[];
+  targetCustomersBn: { title: string; detail: string }[];
+  keyBenefits: { title: string; detail: string }[];
+  keyBenefitsBn: { title: string; detail: string }[];
+  howItWorks: { step: string; title: string; detail: string }[];
+  howItWorksBn: { step: string; title: string; detail: string }[];
+  deliverables: string[];
+  deliverablesBn: string[];
+  faqs: { question: string; answer: string }[];
+  faqsBn: { question: string; answer: string }[];
+  relatedSlugs: string[];
+  relatedSoftwareKey?: SoftwareDemoKey;
+  relatedBlogSlugs?: string[];
+  startingRate?: string;
+  startingRateBn?: string;
 }
 
 export type SoftwareDemoKey =
@@ -164,10 +203,16 @@ export interface ServiceChargeItem {
   iconName: string;
 }
 
+export interface BlogArticleSection {
+  heading: string;
+  paragraphs: string[];
+}
+
 export interface BlogPost {
   id: string;
   title: string;
   slug: string;
+  metaDescription?: string;
   category:
     | 'Accounting & Finance'
     | 'Bangladesh Tax'
@@ -181,6 +226,8 @@ export interface BlogPost {
   author: {
     name: string;
     role: string;
+    credentials?: string;
+    isPerson?: boolean;
   };
   date: string;
   updatedAt?: string;
@@ -189,6 +236,8 @@ export interface BlogPost {
   keyTakeaways: string[];
   tags: string[];
   content: string[];
+  sections?: BlogArticleSection[];
+  relatedServiceSlugs?: string[];
 }
 
 export interface LeadSubmission {

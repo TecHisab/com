@@ -409,6 +409,11 @@ app.patch('/api/admin/leads/:id', requireAdminAuth, (req: Request, res: Response
   });
 });
 
+// Return clean JSON 404 for unmatched API paths so crawlers/clients don't receive SPA HTML
+app.use('/api', (_req: Request, res: Response) => {
+  res.status(404).json({ success: false, error: 'API endpoint not found.' });
+});
+
 // ==========================================
 // 5. VITE INTEGRATION & PRODUCTION STATIC SERVE
 // ==========================================

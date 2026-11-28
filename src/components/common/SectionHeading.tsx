@@ -7,6 +7,7 @@ interface SectionHeadingProps {
   subtitle?: string;
   align?: 'center' | 'left';
   className?: string;
+  as?: 'h1' | 'h2';
 }
 
 export const SectionHeading: React.FC<SectionHeadingProps> = ({
@@ -15,7 +16,9 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
   subtitle,
   align = 'center',
   className = '',
+  as = 'h2',
 }) => {
+  const HeadingTag = as;
   return (
     <div
       className={`max-w-3xl ${align === 'center' ? 'mx-auto text-center' : 'text-left'} ${className}`}
@@ -29,9 +32,9 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
           {badge}
         </p>
       )}
-      <h2 className="text-2xl sm:text-3xl lg:text-[2.15rem] font-extrabold text-[#0B1730] dark:text-white tracking-tight leading-tight">
+      <HeadingTag className="text-2xl sm:text-3xl lg:text-[2.15rem] font-extrabold text-[#0B1730] dark:text-white tracking-tight leading-tight">
         {title}
-      </h2>
+      </HeadingTag>
       {subtitle && (
         <p className="mt-3 text-base sm:text-[17px] text-[#5F6D82] dark:text-slate-300 leading-relaxed font-normal">
           {subtitle}

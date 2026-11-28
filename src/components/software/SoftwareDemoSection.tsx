@@ -1,20 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { SoftwareDemoKey, SoftwareProduct } from '../../types';
 import { getLocalizedSoftwareProducts } from '../../data/localizedData';
 import { useLanguage } from '../../context/LanguageContext';
 import { SoftwareCard } from './SoftwareCard';
 import { SoftwareProductSelector } from './SoftwareProductSelector';
 import { SoftwareFeaturesModal } from './SoftwareFeaturesModal';
-import { DemoBusiness } from './demos/DemoBusiness';
-import { DemoERP } from './demos/DemoERP';
-import { DemoCloudAccounting } from './demos/DemoCloudAccounting';
-import { DemoRetailManager } from './demos/DemoRetailManager';
-import { DemoPOSPro } from './demos/DemoPOSPro';
-import { DemoTradeManager } from './demos/DemoTradeManager';
-import { DemoInventoryPro } from './demos/DemoInventoryPro';
-import { DemoTecHisabOne } from './demos/DemoTecHisabOne';
-import { DemoJibon } from './demos/DemoJibon';
-import { CalculatorWorkspace } from './calculators/CalculatorWorkspace';
+
+const DemoBusiness = lazy(() =>
+  import('./demos/DemoBusiness').then((m) => ({ default: m.DemoBusiness }))
+);
+const DemoERP = lazy(() => import('./demos/DemoERP').then((m) => ({ default: m.DemoERP })));
+const DemoCloudAccounting = lazy(() =>
+  import('./demos/DemoCloudAccounting').then((m) => ({ default: m.DemoCloudAccounting }))
+);
+const DemoRetailManager = lazy(() =>
+  import('./demos/DemoRetailManager').then((m) => ({ default: m.DemoRetailManager }))
+);
+const DemoPOSPro = lazy(() =>
+  import('./demos/DemoPOSPro').then((m) => ({ default: m.DemoPOSPro }))
+);
+const DemoTradeManager = lazy(() =>
+  import('./demos/DemoTradeManager').then((m) => ({ default: m.DemoTradeManager }))
+);
+const DemoInventoryPro = lazy(() =>
+  import('./demos/DemoInventoryPro').then((m) => ({ default: m.DemoInventoryPro }))
+);
+const DemoTecHisabOne = lazy(() =>
+  import('./demos/DemoTecHisabOne').then((m) => ({ default: m.DemoTecHisabOne }))
+);
+const DemoJibon = lazy(() =>
+  import('./demos/DemoJibon').then((m) => ({ default: m.DemoJibon }))
+);
+const CalculatorWorkspace = lazy(() =>
+  import('./calculators/CalculatorWorkspace').then((m) => ({ default: m.CalculatorWorkspace }))
+);
 
 interface SoftwareDemoSectionProps {
   sectionId: string;
@@ -22,6 +41,7 @@ interface SoftwareDemoSectionProps {
   activeDemo: SoftwareDemoKey;
   onSelectDemo: (key: SoftwareDemoKey) => void;
   onRequestOnboarding: () => void;
+  isStandalonePage?: boolean;
 }
 
 export const SoftwareDemoSection: React.FC<SoftwareDemoSectionProps> = ({
@@ -30,6 +50,7 @@ export const SoftwareDemoSection: React.FC<SoftwareDemoSectionProps> = ({
   activeDemo,
   onSelectDemo,
   onRequestOnboarding,
+  isStandalonePage = false,
 }) => {
   const { isBengali, pick } = useLanguage();
   const [modalProduct, setModalProduct] = useState<SoftwareProduct | null>(null);
@@ -70,6 +91,8 @@ export const SoftwareDemoSection: React.FC<SoftwareDemoSectionProps> = ({
     }
   };
 
+  const HeadingTag = isStandalonePage ? 'h1' : 'h2';
+
   return (
     <div id={sectionId} className="space-y-10">
       {/* Section Header matching required copy */}
@@ -77,12 +100,12 @@ export const SoftwareDemoSection: React.FC<SoftwareDemoSectionProps> = ({
         <span className="text-xs font-extrabold uppercase tracking-widest text-[#0345A4] dark:text-sky-400">
           {pick('TecHisab Interactive Software Suite', 'টেকহিসাব ইন্টারেক্টিভ সফটওয়্যার স্যুট')}
         </span>
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B1730] dark:text-white tracking-tight">
+        <HeadingTag className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B1730] dark:text-white tracking-tight">
           {pick(
             'Explore TecHisab Software — Interactive Live Previews',
             'টেকহিসাব সফটওয়্যার ঘুরে দেখুন — ইন্টারেক্টিভ লাইভ প্রিভিউ'
           )}
-        </h2>
+        </HeadingTag>
         <p className="text-sm sm:text-base text-[#5F6D82] dark:text-slate-400 leading-relaxed">
           {pick(
             'Experience the power of TecHisab through interactive software demonstrations. Explore business management, accounting, ERP, retail, POS, trading, inventory, integrated business operations and personal finance through realistic sample data and working calculators.',
@@ -110,7 +133,15 @@ export const SoftwareDemoSection: React.FC<SoftwareDemoSectionProps> = ({
           activeDemo={activeDemo}
           onSelectDemo={onSelectDemo}
         />
-        {renderDemoWorkspace()}
+        <Suspense
+          fallback={
+            <div className="rounded-2xl bg-white dark:bg-slate-900 border border-[#D7E2F3] dark:border-slate-800 p-10 text-center text-xs font-semibold text-[#5F6D82] dark:text-slate-400">
+              {pick('Loading interactive software workspace...', 'ইন্টারেক্টিভ সফটওয়্যার ওয়ার্কস্পেস লোড হচ্ছে...')}
+            </div>
+          }
+        >
+          {renderDemoWorkspace()}
+        </Suspense>
       </div>
 
       <SoftwareFeaturesModal

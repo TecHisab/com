@@ -13,15 +13,19 @@ import { Calendar, Clock, User, ArrowRight, X, CheckCircle2, AlertTriangle } fro
 interface BlogSectionProps {
   selectedPost?: BlogPost | null;
   onSelectPost?: (post: BlogPost | null) => void;
+  onOpenArticleSlug?: (slug: string) => void;
   activeCategory?: string;
   onSelectCategory?: (category: string) => void;
+  isStandalonePage?: boolean;
 }
 
 export const BlogSection: React.FC<BlogSectionProps> = ({
   selectedPost: controlledPost,
   onSelectPost,
+  onOpenArticleSlug,
   activeCategory: controlledCategory,
   onSelectCategory,
+  isStandalonePage = false,
 }) => {
   const { isBengali, pick } = useLanguage();
   const [internalPost, setInternalPost] = useState<BlogPost | null>(null);
@@ -52,10 +56,21 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPost, setSelectedPost]);
 
+  const handleOpenPost = (e: React.MouseEvent<HTMLAnchorElement>, post: BlogPost) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (onOpenArticleSlug) {
+      onOpenArticleSlug(post.slug);
+    } else {
+      setSelectedPost(post);
+    }
+  };
+
   return (
     <section className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <SectionHeading
+          as={isStandalonePage ? 'h1' : 'h2'}
           badge={pick('Knowledge & Articles', 'জ্ঞানভাণ্ডার ও প্রবন্ধসমূহ')}
           title={pick(
             'Accounting, Bangladesh Tax, VAT & Technology Guides',
@@ -124,7 +139,13 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
                   </div>
 
                   <h3 className="text-lg font-extrabold text-[#0B1730] dark:text-white group-hover:text-[#0345A4] dark:group-hover:text-sky-400 transition-colors leading-snug">
-                    {post.title}
+                    <a
+                      href={`/blog/${post.slug}`}
+                      onClick={(e) => handleOpenPost(e, post)}
+                      className="hover:underline focus:outline-none"
+                    >
+                      {post.title}
+                    </a>
                   </h3>
 
                   <p className="text-xs sm:text-sm text-[#5F6D82] dark:text-slate-400 leading-relaxed line-clamp-3">
@@ -144,14 +165,14 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
                 </div>
 
                 <div className="px-6 py-3.5 bg-[#F4F8FF]/70 dark:bg-slate-800/40 border-t border-[#D7E2F3]/70 dark:border-slate-800 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPost(post)}
-                    className="text-xs font-bold text-[#0345A4] dark:text-sky-400 hover:text-[#02377F] inline-flex items-center gap-1 cursor-pointer"
+                  <a
+                    href={`/blog/${post.slug}`}
+                    onClick={(e) => handleOpenPost(e, post)}
+                    className="text-xs font-bold text-[#0345A4] dark:text-sky-400 hover:text-[#02377F] inline-flex items-center gap-1"
                   >
                     <span>{pick('Read Guide', 'বিস্তারিত পড়ুন')}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
+                  </a>
                 </div>
               </article>
             ))}

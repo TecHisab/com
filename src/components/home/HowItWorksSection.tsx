@@ -79,9 +79,9 @@ export const HowItWorksSection: React.FC = () => {
                     </span>
                   </div>
 
-                  <h4 className="text-base font-bold text-[#0B1730] dark:text-white leading-snug">
+                  <h3 className="text-base font-bold text-[#0B1730] dark:text-white leading-snug">
                     {item.title}
-                  </h4>
+                  </h3>
                   <p className="text-xs sm:text-sm text-[#5F6D82] dark:text-slate-400 leading-relaxed mt-2">
                     {item.desc}
                   </p>

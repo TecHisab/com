@@ -1,62 +1,255 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Core Pages -->
   <url>
     <loc>https://www.techisab.com/</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#about</loc>
+    <loc>https://www.techisab.com/about</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#services</loc>
+    <loc>https://www.techisab.com/services</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#software</loc>
+    <loc>https://www.techisab.com/software</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#training</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://www.techisab.com/#pricing</loc>
+    <loc>https://www.techisab.com/software/calculators</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#blog</loc>
+    <loc>https://www.techisab.com/training</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/pricing</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/contact</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Dedicated Service Landing Pages -->
+  <url>
+    <loc>https://www.techisab.com/services/bookkeeping-accounting</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/financial-reporting-mis</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/payroll-salary-processing</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/tax-vat-documentation</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/quickbooks-online-accounting-support</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/excel-google-sheets-automation</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/business-software-website-development</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/inventory-business-management-solutions</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/bpo-data-processing</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/services/practical-accounting-computer-training</loc>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Blog Articles & Knowledge Guides -->
+  <url>
+    <loc>https://www.techisab.com/blog/why-small-businesses-need-professional-bookkeeping-bangladesh</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/how-to-maintain-monthly-accounts-small-business</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/vat-and-tax-documentation-guide-bangladeshi-businesses</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#contact</loc>
+    <loc>https://www.techisab.com/blog/quickbooks-online-for-small-businesses-bangladesh</loc>
+    <lastmod>2026-11-16</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.75</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#privacy-policy</loc>
+    <loc>https://www.techisab.com/blog/how-excel-automation-can-improve-business-accounting</loc>
+    <lastmod>2026-11-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/understanding-monthly-financial-statements</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/payroll-management-for-smes-bangladesh</loc>
+    <lastmod>2026-11-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/cash-flow-management-for-small-businesses</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/budget-vs-actual-analysis-practical-guide</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/how-to-choose-an-accounting-outsourcing-service</loc>
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/monthly-bookkeeping-close-checklist-bangladesh</loc>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/bangladesh-income-tax-slabs-investment-rebates-ita-2023</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/excel-and-google-sheets-for-sme-financial-tracking</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/quickbooks-online-vs-xero-choosing-cloud-accounting</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/moving-from-spreadsheets-to-business-software</loc>
+    <lastmod>2026-11-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/tutorial-testing-techisab-interactive-sandboxes</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/practical-skills-for-early-career-accountants</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.techisab.com/blog/separating-personal-and-business-cash-flows</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Legal & Governance Pages -->
+  <url>
+    <loc>https://www.techisab.com/privacy-policy</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#terms-of-service</loc>
+    <loc>https://www.techisab.com/terms-of-service</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#refund-policy</loc>
+    <loc>https://www.techisab.com/refund-policy</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://www.techisab.com/#tax-disclaimer</loc>
+    <loc>https://www.techisab.com/tax-disclaimer</loc>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

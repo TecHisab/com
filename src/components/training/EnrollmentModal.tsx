@@ -4,6 +4,7 @@ import { X, CheckCircle2, BookOpen, Send, AlertCircle, MessageCircle, Mail, Copy
 import { getLocalizedSiteConfig, localizeCourse } from '../../data/localizedData';
 import { useLanguage } from '../../context/LanguageContext';
 import { useFeedback } from '../../context/FeedbackContext';
+import { trackConversion } from '../../utils/analytics';
 
 interface EnrollmentModalProps {
   course: TrainingCourse | null;
@@ -115,6 +116,7 @@ export const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
     setErrorMessage(null);
     setFieldErrors({});
     setSubmitted(true);
+    trackConversion('training_enrollment_submit', { category: 'training', label: course.id });
     showFeedback({
       type: 'enroll',
       title: pick('Admission Summary Prepared', 'ভর্তির সারসংক্ষেপ প্রস্তুত হয়েছে'),
@@ -206,6 +208,7 @@ export const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackConversion('whatsapp_click', { label: `enroll-${course.id}` })}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -214,6 +217,7 @@ export const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
 
                 <a
                   href={mailtoUrl}
+                  onClick={() => trackConversion('email_click', { label: `enroll-${course.id}` })}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white font-bold text-xs shadow-sm"
                 >
                   <Mail className="w-4 h-4" />

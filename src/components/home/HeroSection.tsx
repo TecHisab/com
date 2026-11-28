@@ -80,37 +80,52 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
 
-            {/* Phase 5.1 Primary Action Buttons */}
+            {/* Phase 5.1 Primary Action Links */}
             <div className="pt-2 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
+              <a
+                href="/services"
                 id="hero-explore-services-btn"
-                onClick={onExploreServices}
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                    e.preventDefault();
+                    onExploreServices();
+                  }
+                }}
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white font-semibold text-sm shadow-sm transition-all cursor-pointer active:scale-98"
               >
                 <Layers className="w-4 h-4" />
                 <span>{pick('Explore Our Services', 'আমাদের সেবাসমূহ দেখুন')}</span>
-              </button>
+              </a>
 
-              <button
-                type="button"
+              <a
+                href="/software"
                 id="hero-explore-software-btn"
-                onClick={onExploreSoftware}
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                    e.preventDefault();
+                    onExploreSoftware();
+                  }
+                }}
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-[#F4F8FF] dark:hover:bg-slate-800 text-[#0345A4] dark:text-sky-400 font-semibold text-sm border border-[#0345A4]/30 dark:border-slate-700 transition-all cursor-pointer active:scale-98"
               >
                 <Monitor className="w-4 h-4" />
                 <span>{pick('Explore Software', 'সফটওয়্যার দেখুন')}</span>
-              </button>
+              </a>
 
-              <button
-                type="button"
+              <a
+                href="/contact"
                 id="hero-request-consultation-btn"
-                onClick={onGetStarted}
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                    e.preventDefault();
+                    onGetStarted();
+                  }
+                }}
                 className="inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl bg-[#F4F8FF] dark:bg-slate-800 hover:bg-[#D7E2F3]/60 dark:hover:bg-slate-700 text-[#0B1730] dark:text-white font-semibold text-sm border border-[#D7E2F3] dark:border-slate-700 transition-all cursor-pointer active:scale-98"
               >
                 <span>{pick('Request a Consultation', 'পরামর্শের জন্য অনুরোধ করুন')}</span>
                 <ArrowRight className="w-4 h-4 text-[#0345A4] dark:text-sky-400" />
-              </button>
+              </a>
             </div>
           </ScrollReveal>
 

@@ -135,12 +135,12 @@ export const EcosystemDiagram: React.FC<EcosystemDiagramProps> = ({ onExploreSer
               <span>{pick('Connected FinTech Core', 'সংযুক্ত ফিনটেক কোর')}</span>
             </div>
 
-            <h4 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-snug">
+            <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-snug">
               {pick(
                 'Financial Mastery Combined with Software Engineering',
                 'সফটওয়্যার ইঞ্জিনিয়ারিংয়ের সাথে আর্থিক দক্ষতার সমন্বয়'
               )}
-            </h4>
+            </h3>
 
             <p className="text-xs sm:text-sm text-sky-100/85 leading-relaxed">
               {pick(

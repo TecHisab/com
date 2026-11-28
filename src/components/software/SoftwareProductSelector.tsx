@@ -43,12 +43,12 @@ export const SoftwareProductSelector: React.FC<SoftwareProductSelectorProps> = (
     <div className="rounded-2xl bg-white dark:bg-slate-900 border border-[#D7E2F3] dark:border-slate-800 p-3 sm:p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h4 className="text-sm font-extrabold text-[#0B1730] dark:text-white">
+          <h3 className="text-sm font-extrabold text-[#0B1730] dark:text-white">
             {pick(
               'Switch Live Interactive Product Preview or Financial Calculators',
               'লাইভ ইন্টারেক্টিভ প্রোডাক্ট প্রিভিউ বা আর্থিক ক্যালকুলেটর পরিবর্তন করুন'
             )}
-          </h4>
+          </h3>
           <p className="text-[11px] text-[#5F6D82] dark:text-slate-400">
             {pick(
               'Select any of the 9 TecHisab applications or open the 8 interactive business calculators below.',

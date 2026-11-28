@@ -2,6 +2,7 @@ import React from 'react';
 import { ServiceItem } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { localizeService } from '../../data/localizedData';
+import { SERVICE_ID_TO_LANDING_SLUG } from '../../utils/routing';
 import {
   BookOpen,
   BarChart3,
@@ -22,6 +23,7 @@ import {
 interface ServiceCardProps {
   service: ServiceItem;
   onSelect: (service: ServiceItem) => void;
+  onOpenServicePage?: (slug: string) => void;
   onRequestQuote: (service: ServiceItem) => void;
 }
 
@@ -43,11 +45,24 @@ const ICON_MAP: Record<string, React.ElementType> = {
 export const ServiceCard: React.FC<ServiceCardProps> = ({
   service,
   onSelect,
+  onOpenServicePage,
   onRequestQuote,
 }) => {
   const { isBengali, pick } = useLanguage();
   const loc = localizeService(service, isBengali);
   const Icon = ICON_MAP[loc.iconName] || BookOpen;
+  const landingSlug = loc.landingSlug || SERVICE_ID_TO_LANDING_SLUG[loc.id];
+  const serviceHref = landingSlug ? `/services/${landingSlug}` : '/services';
+
+  const handleOpenService = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (landingSlug && onOpenServicePage) {
+      onOpenServicePage(landingSlug);
+    } else {
+      onSelect(service);
+    }
+  };
 
   return (
     <div
@@ -74,7 +89,9 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 
         <div>
           <h3 className="text-lg font-bold text-[#0B1730] dark:text-white group-hover:text-[#0345A4] dark:group-hover:text-sky-400 transition-colors">
-            {loc.title}
+            <a href={serviceHref} onClick={handleOpenService} className="hover:underline">
+              {loc.title}
+            </a>
           </h3>
           <p className="text-xs sm:text-sm text-[#5F6D82] dark:text-slate-400 mt-2 leading-relaxed line-clamp-3">
             {loc.shortDesc}
@@ -92,22 +109,36 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       </div>
 
       <div className="mt-6 pt-4 border-t border-[#D7E2F3]/70 dark:border-slate-800 flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => onSelect(service)}
+        <a
+          href={serviceHref}
+          onClick={handleOpenService}
           className="text-xs font-bold text-[#0345A4] dark:text-sky-400 hover:text-[#02377F] inline-flex items-center gap-1 cursor-pointer py-1.5"
         >
-          <span>{pick('View Scope', 'বিস্তারিত দেখুন')}</span>
+          <span>{pick('View Service Page', 'বিস্তারিত পেজ দেখুন')}</span>
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-        </button>
+        </a>
 
-        <button
-          type="button"
-          onClick={() => onRequestQuote(service)}
-          className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#F4F8FF] dark:bg-slate-800 hover:bg-[#0345A4] hover:text-white text-[#0345A4] dark:text-slate-200 border border-[#D7E2F3] dark:border-slate-700 transition-colors cursor-pointer"
-        >
-          {pick('Request Quote', 'কোটেশন চান')}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onSelect(service)}
+            className="px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-[#5F6D82] dark:text-slate-300 hover:text-[#0345A4] cursor-pointer"
+          >
+            {pick('Quick Scope', 'সংক্ষিপ্ত')}
+          </button>
+          <a
+            href="/contact"
+            onClick={(e) => {
+              if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                e.preventDefault();
+                onRequestQuote(service);
+              }
+            }}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#F4F8FF] dark:bg-slate-800 hover:bg-[#0345A4] hover:text-white text-[#0345A4] dark:text-slate-200 border border-[#D7E2F3] dark:border-slate-700 transition-colors cursor-pointer"
+          >
+            {pick('Request Quote', 'কোটেশন চান')}
+          </a>
+        </div>
       </div>
     </div>
   );

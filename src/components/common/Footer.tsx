@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { getLocalizedSiteConfig } from '../../data/localizedData';
 import { useLanguage } from '../../context/LanguageContext';
 import { BrandLogo } from './BrandLogo';
-import { NavigationTab } from '../../types';
+import { NavigationTab, SoftwareDemoKey } from '../../types';
 import { SocialLinks } from './SocialLinks';
 import { BlueAbstractBackdrop } from './BlueAbstractBackdrop';
+import { buildPathForState } from '../../utils/routing';
+import { trackConversion } from '../../utils/analytics';
 import {
   Phone,
   Mail,
@@ -21,9 +23,15 @@ import {
 
 interface FooterProps {
   onNavigate: (tab: NavigationTab) => void;
+  onSelectServiceSlug?: (slug: string) => void;
+  onSelectSoftwareDemoTab?: (demo: SoftwareDemoKey) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+export const Footer: React.FC<FooterProps> = ({
+  onNavigate,
+  onSelectServiceSlug,
+  onSelectSoftwareDemoTab,
+}) => {
   const { isBengali, pick } = useLanguage();
   const site = getLocalizedSiteConfig(isBengali);
   const currentYear = new Date().getFullYear();
@@ -37,6 +45,31 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleAnchorNav = (e: React.MouseEvent<HTMLAnchorElement>, tab: NavigationTab) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    handleNav(tab);
+  };
+
+  const handleServiceAnchor = (e: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (onSelectServiceSlug) {
+      onSelectServiceSlug(slug);
+    } else {
+      handleNav('services');
+    }
+  };
+
+  const handleSoftwareAnchor = (e: React.MouseEvent<HTMLAnchorElement>, demo: SoftwareDemoKey) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (onSelectSoftwareDemoTab) {
+      onSelectSoftwareDemoTab(demo);
+    }
+    handleNav('software');
+  };
+
   const handleDigestRequest = (e: React.FormEvent) => {
     e.preventDefault();
     const cleaned = digestEmail.trim();
@@ -47,6 +80,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
       );
       return;
     }
+
+    trackConversion('cta_click', { location: 'footer_digest', label: 'footer_digest_request' });
 
     const subject = encodeURIComponent('Subscribe: TecHisab Tax, VAT & Software Updates');
     const body = encodeURIComponent(
@@ -96,6 +131,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </div>
               <a
                 href={`tel:${site.contact.phone}`}
+                onClick={() => trackConversion('phone_click', { location: 'footer' })}
                 className="block text-white font-bold hover:text-sky-200 transition-colors text-sm"
               >
                 {site.contact.phoneDisplay}
@@ -112,6 +148,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </div>
               <a
                 href={`mailto:${site.contact.email}`}
+                onClick={() => trackConversion('email_click', { location: 'footer' })}
                 className="block text-white font-bold hover:text-sky-200 transition-colors text-sm truncate"
               >
                 {site.contact.email}
@@ -130,7 +167,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <a
                 href={site.contact.mapDirectionsUrl}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[11px] text-sky-300 hover:text-white font-medium"
               >
                 <span>{pick('Open Map', 'ম্যাপে দেখুন')}</span>
@@ -146,12 +183,12 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <span className="text-[11px] font-bold uppercase tracking-wider text-sky-200 block">
               {pick('Bangladesh Tax, VAT & Software Updates', 'বাংলাদেশ ট্যাক্স, ভ্যাট ও সফটওয়্যার আপডেট')}
             </span>
-            <h4 className="text-base sm:text-lg font-bold text-white">
+            <h2 className="text-base sm:text-lg font-bold text-white">
               {pick(
                 'Request Statutory & Advisory Briefings via Email',
                 'ইমেইলে বিধিবদ্ধ ও পরামর্শমূলক আপডেট পেতে অনুরোধ করুন'
               )}
-            </h4>
+            </h2>
             <p className="text-xs text-sky-100/80">
               {pick(
                 'Prepare a quick briefing request to receive updates on Income Tax Act 2023 guidance, VAT rules, and TecHisab software releases.',
@@ -166,6 +203,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               value={digestEmail}
               onChange={(e) => setDigestEmail(e.target.value)}
               placeholder={pick('Enter business or personal email', 'আপনার ব্যবসার বা ব্যক্তিগত ইমেইল লিখুন')}
+              aria-label={pick('Email address for statutory updates', 'ইমেইল ঠিকানা')}
               className="w-full sm:w-72 px-4 py-2.5 rounded-xl bg-[#0B1730]/60 border border-white/20 text-xs text-white placeholder-sky-200/60 focus:outline-none focus:ring-2 focus:ring-sky-300"
               required
             />
@@ -199,181 +237,237 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Navigation Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 py-6 border-b border-white/15 text-sm">
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
               {pick('Company', 'প্রতিষ্ঠান')}
-            </h4>
+            </h3>
             <ul className="space-y-2 text-sky-100/85">
               <li>
-                <button type="button" onClick={() => handleNav('home')} className="hover:text-white cursor-pointer text-left">
+                <a href="/" onClick={(e) => handleAnchorNav(e, 'home')} className="hover:text-white text-left inline-block">
                   {pick('Home', 'হোম')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('about')} className="hover:text-white cursor-pointer text-left">
+                <a href="/about" onClick={(e) => handleAnchorNav(e, 'about')} className="hover:text-white text-left inline-block">
                   {pick('About TecHisab', 'টেকহিসাব পরিচিতি')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('pricing')} className="hover:text-white cursor-pointer text-left">
+                <a href="/pricing" onClick={(e) => handleAnchorNav(e, 'pricing')} className="hover:text-white text-left inline-block">
                   {pick('Pricing & Packages', 'মূল্যতালিকা ও প্যাকেজ')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('blog')} className="hover:text-white cursor-pointer text-left">
+                <a href="/blog" onClick={(e) => handleAnchorNav(e, 'blog')} className="hover:text-white text-left inline-block">
                   {pick('Knowledge Blog', 'জ্ঞানভাণ্ডার ব্লগ')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('contact')} className="hover:text-white cursor-pointer text-left">
+                <a href="/contact" onClick={(e) => handleAnchorNav(e, 'contact')} className="hover:text-white text-left inline-block">
                   {pick('Contact Us', 'যোগাযোগ করুন')}
-                </button>
+                </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
               {pick('Services', 'সেবাসমূহ')}
-            </h4>
+            </h3>
             <ul className="space-y-2 text-sky-100/85">
               <li>
-                <button type="button" onClick={() => handleNav('services')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/bookkeeping-accounting"
+                  onClick={(e) => handleServiceAnchor(e, 'bookkeeping-accounting')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Accounting & Bookkeeping', 'অ্যাকাউন্টিং ও বুককিপিং')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('services')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/payroll-salary-processing"
+                  onClick={(e) => handleServiceAnchor(e, 'payroll-salary-processing')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Payroll & Operations', 'পেরোল ও অপারেশনস')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('services')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/tax-vat-documentation"
+                  onClick={(e) => handleServiceAnchor(e, 'tax-vat-documentation')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Tax & VAT Support', 'ট্যাক্স ও ভ্যাট সহায়তা')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('services')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/bpo-data-processing"
+                  onClick={(e) => handleServiceAnchor(e, 'bpo-data-processing')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('BPO & Back-Office', 'বিপিও ও ব্যাক-অফিস')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('services')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/business-software-website-development"
+                  onClick={(e) => handleServiceAnchor(e, 'business-software-website-development')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Software & Automation', 'সফটওয়্যার ও অটোমেশন')}
-                </button>
+                </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
               {pick('Software Portfolio', 'সফটওয়্যার পোর্টফোলিও')}
-            </h4>
+            </h3>
             <ul className="space-y-2 text-sky-100/85">
               <li>
-                <button type="button" onClick={() => handleNav('software')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/software"
+                  onClick={(e) => handleSoftwareAnchor(e, 'business')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('TecHisab Business & ERP', 'টেকহিসাব বিজনেস ও ইআরপি')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('software')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/software/cloud-accounting"
+                  onClick={(e) => handleSoftwareAnchor(e, 'cloud-accounting')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Cloud Accounting & One', 'ক্লাউড অ্যাকাউন্টিং ও ওয়ান')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('software')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/software/retail-manager"
+                  onClick={(e) => handleSoftwareAnchor(e, 'retail-manager')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Retail Manager & POS Pro', 'রিটেইল ম্যানেজার ও পিওএস প্রো')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('software')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/software/trade-manager"
+                  onClick={(e) => handleSoftwareAnchor(e, 'trade-manager')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Trade & Inventory Pro', 'ট্রেড ও ইনভেন্টরি প্রো')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('software')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/software/jibon"
+                  onClick={(e) => handleSoftwareAnchor(e, 'jibon')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Jibon (জীবন) App', 'জীবন (Jibon) অ্যাপ')}
-                </button>
+                </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
               {pick('Training', 'প্রশিক্ষণ')}
-            </h4>
+            </h3>
             <ul className="space-y-2 text-sky-100/85">
               <li>
-                <button type="button" onClick={() => handleNav('training')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/practical-accounting-computer-training"
+                  onClick={(e) => handleServiceAnchor(e, 'practical-accounting-computer-training')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Practical Accounting', 'প্র্যাকটিক্যাল অ্যাকাউন্টিং')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('training')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/quickbooks-online-accounting-support"
+                  onClick={(e) => handleServiceAnchor(e, 'quickbooks-online-accounting-support')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('QuickBooks & Xero', 'কুইকবুকস ও জেরো')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('training')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/excel-google-sheets-automation"
+                  onClick={(e) => handleServiceAnchor(e, 'excel-google-sheets-automation')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Excel & Google Sheets', 'এক্সেল ও গুগল শিটস')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('training')} className="hover:text-white cursor-pointer text-left">
+                <a
+                  href="/services/tax-vat-documentation"
+                  onClick={(e) => handleServiceAnchor(e, 'tax-vat-documentation')}
+                  className="hover:text-white text-left inline-block"
+                >
                   {pick('Tax & VAT Fundamentals', 'ট্যাক্স ও ভ্যাট প্রশিক্ষণ')}
-                </button>
+                </a>
               </li>
               <li>
-                <button type="button" onClick={() => handleNav('training')} className="hover:text-white cursor-pointer text-left">
+                <a href="/training" onClick={(e) => handleAnchorNav(e, 'training')} className="hover:text-white text-left inline-block">
                   {pick('All Courses Directory', 'সকল প্রশিক্ষণ কোর্স')}
-                </button>
+                </a>
               </li>
             </ul>
           </div>
 
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
-            <h4 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-3 text-sky-200">
               {pick('Legal & Governance', 'আইন ও নীতিমালা')}
-            </h4>
+            </h3>
             <ul className="space-y-2 text-sky-100/85">
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleNav('privacy-policy')}
-                  className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
+                <a
+                  href={buildPathForState({ tab: 'privacy-policy' })}
+                  onClick={(e) => handleAnchorNav(e, 'privacy-policy')}
+                  className="hover:text-white transition-colors text-left flex items-center gap-1.5"
                 >
                   <Lock className="w-3.5 h-3.5 text-sky-300" />
                   <span>{pick('Privacy Policy', 'গোপনীয়তা নীতি')}</span>
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleNav('terms-of-service')}
-                  className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
+                <a
+                  href={buildPathForState({ tab: 'terms-of-service' })}
+                  onClick={(e) => handleAnchorNav(e, 'terms-of-service')}
+                  className="hover:text-white transition-colors text-left flex items-center gap-1.5"
                 >
                   <Scale className="w-3.5 h-3.5 text-sky-300" />
                   <span>{pick('Terms of Service', 'সেবার শর্তাবলি')}</span>
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleNav('refund-policy')}
-                  className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
+                <a
+                  href={buildPathForState({ tab: 'refund-policy' })}
+                  onClick={(e) => handleAnchorNav(e, 'refund-policy')}
+                  className="hover:text-white transition-colors text-left flex items-center gap-1.5"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-sky-300" />
                   <span>{pick('Refund & Cancellation', 'রিফান্ড ও বাতিলকরণ')}</span>
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleNav('tax-disclaimer')}
-                  className="hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
+                <a
+                  href={buildPathForState({ tab: 'tax-disclaimer' })}
+                  onClick={(e) => handleAnchorNav(e, 'tax-disclaimer')}
+                  className="hover:text-white transition-colors text-left flex items-center gap-1.5"
                 >
                   <FileText className="w-3.5 h-3.5 text-amber-300" />
                   <span>{pick('Tax Disclaimer', 'কর ও বিধিবদ্ধ ঘোষণা')}</span>
-                </button>
+                </a>
               </li>
             </ul>
           </div>

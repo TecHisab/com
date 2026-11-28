@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import {
   NavigationTab,
   ServiceItem,
@@ -13,14 +13,13 @@ import { Navbar } from './components/common/Navbar';
 import { TopTypingBanner } from './components/common/TopTypingBanner';
 import { Breadcrumbs, SoftwareDemoType } from './components/common/Breadcrumbs';
 import { Footer } from './components/common/Footer';
-import { GlobalThreeBackdrop } from './components/three/GlobalThreeBackdrop';
 import { ScrollProgressBar } from './components/common/ScrollProgressBar';
 import { QuickHelpChat } from './components/common/QuickHelpChat';
 import { FeedbackToast } from './components/common/FeedbackToast';
 import { CtaBanner } from './components/common/CtaBanner';
 import { SectionHeading } from './components/common/SectionHeading';
 import { ScrollReveal } from './components/common/ScrollReveal';
-import { LegalPageView, LegalPageRoute } from './components/legal/LegalPageView';
+import type { LegalPageRoute } from './components/legal/LegalPageView';
 
 // Home Section Components
 import { HeroSection } from './components/home/HeroSection';
@@ -34,8 +33,9 @@ import { TestimonialsFaq } from './components/home/TestimonialsFaq';
 import { ServiceCard } from './components/services/ServiceCard';
 import { ServiceDetailModal } from './components/services/ServiceDetailModal';
 import { SERVICES_DATA } from './data/servicesData';
+import { getServiceLandingBySlug } from './data/serviceLandingData';
 
-// Software Components & Demos
+// Software Components
 import { SoftwareDemoSection } from './components/software/SoftwareDemoSection';
 import { SOFTWARE_PRODUCTS } from './data/softwareData';
 
@@ -44,21 +44,69 @@ import { CourseCard } from './components/training/CourseCard';
 import { EnrollmentModal } from './components/training/EnrollmentModal';
 import { TRAINING_COURSES } from './data/trainingData';
 
-// Pricing Components
-import { PricingSection } from './components/pricing/PricingSection';
+// Blog Data
+import { BLOG_POSTS, getBlogPostBySlug } from './data/blogData';
 
-// Blog Components
-import { BlogSection } from './components/blog/BlogSection';
-
-// Contact & About Components
-import { ContactSection } from './components/contact/ContactSection';
-import { AboutSection } from './components/about/AboutSection';
 import {
   localizeBlogPost,
   getLocalizedServices,
   getLocalizedTrainingCourses,
 } from './data/localizedData';
+import {
+  buildPathForState,
+  parseRouteFromLocation,
+  SERVICE_ID_TO_LANDING_SLUG,
+} from './utils/routing';
+import { updatePageSeoMeta, syncStructuredData } from './utils/seoSchema';
+import { trackPageView, trackConversion } from './utils/analytics';
 import { ArrowRight, Layers, Monitor, GraduationCap } from 'lucide-react';
+
+// Deferred 3D Backdrop & Route-Level Code Splitting
+const GlobalThreeBackdrop = lazy(() =>
+  import('./components/three/GlobalThreeBackdrop').then((m) => ({
+    default: m.GlobalThreeBackdrop,
+  }))
+);
+const ServiceLandingPage = lazy(() =>
+  import('./components/services/ServiceLandingPage').then((m) => ({
+    default: m.ServiceLandingPage,
+  }))
+);
+const BlogArticlePage = lazy(() =>
+  import('./components/blog/BlogArticlePage').then((m) => ({
+    default: m.BlogArticlePage,
+  }))
+);
+const PricingSection = lazy(() =>
+  import('./components/pricing/PricingSection').then((m) => ({
+    default: m.PricingSection,
+  }))
+);
+const BlogSection = lazy(() =>
+  import('./components/blog/BlogSection').then((m) => ({
+    default: m.BlogSection,
+  }))
+);
+const ContactSection = lazy(() =>
+  import('./components/contact/ContactSection').then((m) => ({
+    default: m.ContactSection,
+  }))
+);
+const AboutSection = lazy(() =>
+  import('./components/about/AboutSection').then((m) => ({
+    default: m.AboutSection,
+  }))
+);
+const LegalPageView = lazy(() =>
+  import('./components/legal/LegalPageView').then((m) => ({
+    default: m.LegalPageView,
+  }))
+);
+const NotFoundView = lazy(() =>
+  import('./components/common/NotFoundView').then((m) => ({
+    default: m.NotFoundView,
+  }))
+);
 
 const LEGAL_ROUTES: LegalPageRoute[] = [
   'privacy-policy',
@@ -67,59 +115,76 @@ const LEGAL_ROUTES: LegalPageRoute[] = [
   'tax-disclaimer',
 ];
 
+const KNOWN_BLOG_SLUGS = BLOG_POSTS.map((p) => p.slug);
+const KNOWN_BLOG_ID_TO_SLUG: Record<string, string> = Object.fromEntries(
+  BLOG_POSTS.map((p) => [p.id, p.slug])
+);
+
 const ROUTE_SEO_META: Record<NavigationTab, { title: string; description: string; path: string }> = {
   home: {
-    title: 'TecHisab | ITES & FINTEC — Accounting, Finance, Tax & Business Software',
+    title: 'TecHisab | Accounting, Bookkeeping & Business Technology Solutions in Bangladesh',
     description:
-      'TecHisab provides professional Accounting, Finance, Tax & VAT Support, Payroll, BPO, MIS Reporting, Business Software and Practical Technology Training in Bangladesh.',
+      'TecHisab provides professional bookkeeping, accounting, payroll, tax and VAT, QuickBooks, business automation, software development and training services in Bangladesh.',
     path: '/',
   },
   about: {
-    title: 'About TecHisab | ITES & FINTEC Consulting & Software',
+    title: 'About TecHisab | ITES & FINTEC Firm in Chattogram, Bangladesh',
     description:
-      'Learn about TecHisab — Chittagong-based ITES & FINTEC company founded by M. M. Alam, combining practical accounting rigor with modern business technology.',
+      'Learn about TecHisab — Chattogram-based ITES & FINTEC firm led by M. M. Alam and Engr. Md. Tarek Hasan, combining accounting rigor with business software.',
     path: '/about',
   },
   services: {
-    title: 'Business Services | Accounting, Payroll, Tax, VAT & Software — TecHisab',
+    title: 'Accounting, Payroll, Tax, VAT & Technology Services | TecHisab',
     description:
-      'Explore TecHisab accounting, bookkeeping, payroll, Bangladesh Tax & VAT support, MIS reporting, BPO back-office and custom technology services.',
+      'Explore TecHisab bookkeeping, financial reporting, payroll, Bangladesh Tax & VAT documentation, QuickBooks support, BPO and software development services.',
+    path: '/services',
+  },
+  'service-detail': {
+    title: 'Specialized Business & Accounting Services | TecHisab Bangladesh',
+    description:
+      'Dedicated accounting, tax, VAT, payroll, QuickBooks, automation, software development and training services by TecHisab in Chattogram and Bangladesh.',
     path: '/services',
   },
   software: {
-    title: 'Software Portfolio | ERP, Cloud Accounting, POS & Jibon — TecHisab',
+    title: 'Business & Accounting Software Bangladesh | ERP, POS & Jibon — TecHisab',
     description:
       'Explore 9 TecHisab software products including TecHisab Business, ERP, Cloud Accounting, Retail Manager, POS Pro, Trade Manager, Inventory Pro, One and Jibon.',
     path: '/software',
   },
   'software-tax': {
-    title: 'Bangladesh Income Tax Planning Simulator | TecHisab',
+    title: 'Bangladesh Income Tax & Business Financial Calculators | TecHisab',
     description:
-      'Test interactive Bangladesh Income Tax Act 2023 slab calculations and Section 78 investment rebate scenarios with TecHisab.',
-    path: '/software#tax',
+      'Test interactive Bangladesh Income Tax Act 2023 slab calculations, Section 78 rebate scenarios, VAT and business calculators with TecHisab.',
+    path: '/software/calculators',
   },
   training: {
-    title: 'Practical Accounting, Tax & Technology Training | TecHisab',
+    title: 'Practical Accounting, QuickBooks, Tax & Excel Training | TecHisab Chattogram',
     description:
-      'Practical training in MS Office, Excel automation, QuickBooks Online, Xero, Graphic Design, Bangladesh Tax & VAT and Executive Accounting.',
+      'Practical hands-on training in Chattogram and online covering MS Office, Excel automation, QuickBooks Online, Xero, Graphic Design and Bangladesh Tax & VAT.',
     path: '/training',
   },
   pricing: {
-    title: 'Pricing Plans | Software Subscriptions & Business Services — TecHisab',
+    title: 'Transparent Software & Accounting Service Pricing | TecHisab Bangladesh',
     description:
-      'Transparent monthly & annual pricing for all 9 TecHisab software products, accounting & tax services, and unified business packages.',
+      'Monthly and annual pricing for all 9 TecHisab software applications, accounting and tax retainers, and unified business packages in Bangladesh.',
     path: '/pricing',
   },
   blog: {
-    title: 'Knowledge Hub & Articles | Accounting, Tax, VAT & Excel — TecHisab',
+    title: 'Knowledge Hub | Accounting, Bangladesh Tax, VAT & Excel Guides — TecHisab',
     description:
-      'Practical articles and guides on Bangladesh Tax, VAT & Mushak compliance, double-entry accounting, QuickBooks, Xero, Excel and business automation.',
+      'Practical original guides on bookkeeping, Bangladesh Tax Act 2023, VAT & Mushak compliance, QuickBooks Online, payroll management and Excel automation.',
+    path: '/blog',
+  },
+  'blog-article': {
+    title: 'Accounting, Tax & Business Technology Guide | TecHisab Blog',
+    description:
+      'Read practical accounting, Bangladesh tax, VAT documentation, QuickBooks and business automation insights from the TecHisab advisory team.',
     path: '/blog',
   },
   contact: {
-    title: 'Contact & Consultation | TecHisab Chittagong, Bangladesh',
+    title: 'Contact TecHisab | Accounting & Software Consultation in Chattogram',
     description:
-      'Contact TecHisab for accounting, finance, tax & VAT support, business software demos or corporate training in Chittagong and across Bangladesh.',
+      'Contact TecHisab in Chattogram, Bangladesh (+8801556615555, info@techisab.com) for accounting, tax and VAT support, business software demos or training.',
     path: '/contact',
   },
   'privacy-policy': {
@@ -142,16 +207,21 @@ const ROUTE_SEO_META: Record<NavigationTab, { title: string; description: string
     description: 'Statutory disclaimer regarding tax estimation tools, NBR e-Return verification and formal advisory engagements.',
     path: '/tax-disclaimer',
   },
+  'not-found': {
+    title: 'Page Not Found (404) | TecHisab',
+    description: 'The requested TecHisab page could not be found. Browse our accounting, tax, software and training solutions.',
+    path: '/404',
+  },
 };
 
 const ROUTE_SEO_META_BN: Record<NavigationTab, { title: string; description: string }> = {
   home: {
-    title: 'টেকহিসাব (TecHisab) | আইটিইএস ও ফিনটেক — অ্যাকাউন্টিং, ট্যাক্স ও বিজনেস সফটওয়্যার',
+    title: 'টেকহিসাব (TecHisab) | বাংলাদেশে অ্যাকাউন্টিং, বুককিপিং ও বিজনেস টেকনোলজি সমাধান',
     description:
-      'বাংলাদেশে পেশাদার অ্যাকাউন্টিং, ফাইন্যান্স, আয়কর ও ভ্যাট সহায়তা, পেরোল, বিপিও, এমআইএস রিপোর্টিং, বিজনেস সফটওয়্যার এবং প্র্যাকটিক্যাল প্রযুক্তি প্রশিক্ষণ।',
+      'বাংলাদেশে পেশাদার বুককিপিং, অ্যাকাউন্টিং, পেরোল, ট্যাক্স ও ভ্যাট, কুইকবুকস, বিজনেস অটোমেশন, সফটওয়্যার ডেভেলপমেন্ট এবং প্র্যাকটিক্যাল প্রশিক্ষণ সেবা।',
   },
   about: {
-    title: 'আমাদের পরিচিতি | টেকহিসাব — আইটিইএস ও ফিনটেক কনসাল্টিং ও সফটওয়্যার',
+    title: 'আমাদের পরিচিতি | টেকহিসাব — চট্টগ্রাম, বাংলাদেশ',
     description:
       'চট্টগ্রাম-ভিত্তিক আইটিইএস ও ফিনটেক প্রতিষ্ঠান টেকহিসাব সম্পর্কে জানুন — বাস্তবসম্মত হিসাববিজ্ঞান ও আধুনিক ব্যবসায়িক প্রযুক্তির সমন্বয়।',
   },
@@ -159,6 +229,11 @@ const ROUTE_SEO_META_BN: Record<NavigationTab, { title: string; description: str
     title: 'ব্যবসায়িক সেবাসমূহ | অ্যাকাউন্টিং, পেরোল, ট্যাক্স, ভ্যাট ও সফটওয়্যার — টেকহিসাব',
     description:
       'টেকহিসাবের অ্যাকাউন্টিং, বুককিপিং, পেরোল, বাংলাদেশ ট্যাক্স ও ভ্যাট সহায়তা, এমআইএস রিপোর্টিং, বিপিও এবং কাস্টম সফটওয়্যার সেবা দেখুন।',
+  },
+  'service-detail': {
+    title: 'বিশেষায়িত অ্যাকাউন্টিং ও বিজনেস টেকনোলজি সেবা | টেকহিসাব',
+    description:
+      'চট্টগ্রাম ও সারা বাংলাদেশের ব্যবসার জন্য টেকহিসাবের ডেডিকেটেড অ্যাকাউন্টিং, ট্যাক্স, ভ্যাট, পেরোল ও সফটওয়্যার সেবা।',
   },
   software: {
     title: 'সফটওয়্যার পোর্টফোলিও | ইআরপি, ক্লাউড অ্যাকাউন্টিং, পিওএস ও জীবন — টেকহিসাব',
@@ -171,7 +246,7 @@ const ROUTE_SEO_META_BN: Record<NavigationTab, { title: string; description: str
       'বাংলাদেশ আয়কর আইন ২০২৩ অনুযায়ী ধাপভিত্তিক কর হিসাব ও বিনিয়োগ রেয়াত সিমুলেশন পরীক্ষা করুন।',
   },
   training: {
-    title: 'প্র্যাকটিক্যাল অ্যাকাউন্টিং, ট্যাক্স ও টেকনোলজি প্রশিক্ষণ | টেকহিসাব',
+    title: 'প্র্যাকটিক্যাল অ্যাকাউন্টিং, ট্যাক্স ও টেকনোলজি প্রশিক্ষণ | টেকহিসাব চট্টগ্রাম',
     description:
       'এমএস অফিস, এক্সেল অটোমেশন, কুইকবুকস, জেরো, গ্রাফিক ডিজাইন, বাংলাদেশ ট্যাক্স ও ভ্যাট এবং এক্সিকিউটিভ অ্যাকাউন্টিং প্রশিক্ষণ।',
   },
@@ -184,6 +259,11 @@ const ROUTE_SEO_META_BN: Record<NavigationTab, { title: string; description: str
     title: 'জ্ঞানভাণ্ডার ও আর্টিকেল | অ্যাকাউন্টিং, ট্যাক্স, ভ্যাট ও এক্সেল — টেকহিসাব',
     description:
       'বাংলাদেশ আয়কর, ভ্যাট ও মূসক কমপ্লায়েন্স, ডাবল-এন্ট্রি বুককিপিং, কুইকবুকস, জেরো, এক্সেল ও ব্যবসায়িক অটোমেশন গাইড।',
+  },
+  'blog-article': {
+    title: 'জ্ঞানভাণ্ডার গাইড | টেকহিসাব ব্লগ',
+    description:
+      'অ্যাকাউন্টিং, বাংলাদেশ ট্যাক্স, ভ্যাট ডকুমেন্টেশন, কুইকবুকস এবং বিজনেস অটোমেশন নিয়ে টেকহিসাবের বিশ্লেষণধর্মী গাইড।',
   },
   contact: {
     title: 'যোগাযোগ ও পরামর্শ | টেকহিসাব চট্টগ্রাম, বাংলাদেশ',
@@ -206,119 +286,362 @@ const ROUTE_SEO_META_BN: Record<NavigationTab, { title: string; description: str
     title: 'কর ও বিধিবদ্ধ ঘোষণা | টেকহিসাব',
     description: 'কর ক্যালকুলেটর, এনবিআর ই-রিটার্ন যাচাই ও আনুষ্ঠানিক কর পরামর্শ সংক্রান্ত ঘোষণা।',
   },
+  'not-found': {
+    title: 'পৃষ্ঠাটি পাওয়া যায়নি (৪০৪) | টেকহিসাব',
+    description: 'অনুরোধকৃত পৃষ্ঠাটি পাওয়া যায়নি। টেকহিসাবের হোমপেজ বা সেবাসমূহ ব্রাউজ করুন।',
+  },
 };
+
+function RouteFallback() {
+  return (
+    <div className="py-24 flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-[#0345A4] border-t-transparent animate-spin" />
+    </div>
+  );
+}
 
 function MainApp() {
   const { isBengali, pick } = useLanguage();
   const [activeTab, setActiveTab] = useState<NavigationTab>('home');
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  const [selectedServiceSlug, setSelectedServiceSlug] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<TrainingCourse | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [serviceFilter, setServiceFilter] = useState<string>('all');
   const [blogCategory, setBlogCategory] = useState<string>('all');
   const [softwareDemoTab, setSoftwareDemoTab] = useState<SoftwareDemoType>('business');
+  const [showThreeBackdrop, setShowThreeBackdrop] = useState(false);
 
-  // GitHub Pages SPA path restoration (?p=/services etc.) on initial load
+  // Defer 3D WebGL backdrop slightly so primary text & hero paint cleanly first
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const redirectedPath = params.get('p');
-    if (redirectedPath) {
-      const normalized = redirectedPath.replace(/^\/+|\/+$/g, '').toLowerCase();
-      const validTabs: NavigationTab[] = [
-        'home',
-        'about',
-        'services',
-        'software',
-        'training',
-        'pricing',
-        'blog',
-        'contact',
-        'privacy-policy',
-        'terms-of-service',
-        'refund-policy',
-        'tax-disclaimer',
-      ];
-      if (validTabs.includes(normalized as NavigationTab)) {
-        setActiveTab(normalized as NavigationTab);
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof win.requestIdleCallback === 'function') {
+      const idleId = win.requestIdleCallback(() => setShowThreeBackdrop(true), { timeout: 300 });
+      return () => {
+        win.cancelIdleCallback?.(idleId);
+      };
+    }
+    const timer = window.setTimeout(() => setShowThreeBackdrop(true), 150);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const applyParsedRoute = useCallback(
+    (
+      parsed: ReturnType<typeof parseRouteFromLocation>,
+      syncMode: 'replace' | 'none' = 'none'
+    ) => {
+      setSelectedService(null);
+      setSelectedCourse(null);
+      setActiveTab(parsed.tab);
+
+      if (parsed.tab === 'service-detail' && parsed.serviceSlug) {
+        setSelectedServiceSlug(parsed.serviceSlug);
+        setSelectedBlog(null);
+      } else if (parsed.tab === 'blog-article' && parsed.blogSlug) {
+        setSelectedServiceSlug(null);
+        setSelectedBlog(getBlogPostBySlug(parsed.blogSlug) || null);
+      } else {
+        setSelectedServiceSlug(null);
+        setSelectedBlog(null);
       }
-      const cleanHash = normalized ? `#${normalized}` : '#home';
-      window.history.replaceState(null, '', cleanHash);
-    }
-  }, []);
 
-  // Dynamic route-based SEO title, meta description & canonical sync
+      if (parsed.serviceFilter) {
+        setServiceFilter(parsed.serviceFilter);
+      } else if (parsed.tab !== 'services') {
+        setServiceFilter('all');
+      }
+
+      if (parsed.softwareDemoTab) {
+        setSoftwareDemoTab(parsed.softwareDemoTab);
+      }
+
+      if (syncMode === 'replace' && typeof window !== 'undefined') {
+        if (window.location.pathname !== parsed.canonicalPath || window.location.search || window.location.hash) {
+          window.history.replaceState(null, '', parsed.canonicalPath);
+        }
+      }
+    },
+    []
+  );
+
+  // Initial route resolution (clean URLs, ?/ GitHub Pages redirect, ?p=, and legacy # hashes)
   useEffect(() => {
-    const meta = ROUTE_SEO_META[activeTab] || ROUTE_SEO_META.home;
-    const bnMeta = ROUTE_SEO_META_BN[activeTab] || ROUTE_SEO_META_BN.home;
-    const localizedBlog = selectedBlog ? localizeBlogPost(selectedBlog, isBengali) : null;
+    const parsed = parseRouteFromLocation(
+      window.location.pathname,
+      window.location.search,
+      window.location.hash,
+      KNOWN_BLOG_SLUGS,
+      KNOWN_BLOG_ID_TO_SLUG
+    );
+    applyParsedRoute(parsed, 'replace');
 
-    document.title = localizedBlog
-      ? `${localizedBlog.title} | ${pick('TecHisab Knowledge Hub', 'টেকহিসাব জ্ঞানভাণ্ডার')}`
-      : isBengali
-      ? bnMeta.title
-      : meta.title;
-
-    const descEl = document.querySelector('meta[name="description"]');
-    if (descEl) {
-      descEl.setAttribute(
-        'content',
-        localizedBlog ? localizedBlog.summary : isBengali ? bnMeta.description : meta.description
+    const handlePopState = () => {
+      const nextParsed = parseRouteFromLocation(
+        window.location.pathname,
+        window.location.search,
+        window.location.hash,
+        KNOWN_BLOG_SLUGS,
+        KNOWN_BLOG_ID_TO_SLUG
       );
-    }
-
-    const canonicalEl = document.querySelector('link[rel="canonical"]');
-    if (canonicalEl) {
-      const canonicalUrl =
-        meta.path === '/' ? 'https://www.techisab.com/' : `https://www.techisab.com/#${activeTab}`;
-      canonicalEl.setAttribute('href', canonicalUrl);
-    }
-  }, [activeTab, selectedBlog, isBengali, pick]);
-
-  const handleNavigate = useCallback((tab: NavigationTab) => {
-    setActiveTab(tab);
-    if (tab === 'software-tax') {
-      setSoftwareDemoTab('calculators');
-      setTimeout(() => {
-        const el = document.getElementById('full-software-engine');
-        el?.scrollIntoView({ behavior: 'smooth' });
-      }, 60);
-    } else {
+      applyParsedRoute(nextParsed, 'none');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [applyParsedRoute]);
+
+  const pushPathIfChanged = useCallback((targetPath: string) => {
+    if (typeof window !== 'undefined' && window.location.pathname !== targetPath) {
+      window.history.pushState(null, '', targetPath);
     }
   }, []);
+
+  const handleNavigate = useCallback(
+    (tab: NavigationTab) => {
+      setSelectedService(null);
+      setSelectedCourse(null);
+
+      if (tab !== 'service-detail') {
+        setSelectedServiceSlug(null);
+      }
+      if (tab !== 'blog-article') {
+        setSelectedBlog(null);
+      }
+
+      const nextDemoTab: SoftwareDemoKey = tab === 'software-tax' ? 'calculators' : softwareDemoTab;
+      if (tab === 'software-tax') {
+        setSoftwareDemoTab('calculators');
+      }
+
+      setActiveTab(tab);
+
+      const targetPath = buildPathForState({
+        tab,
+        serviceSlug: tab === 'service-detail' ? selectedServiceSlug : null,
+        blogSlug: tab === 'blog-article' ? selectedBlog?.slug || null : null,
+        softwareDemoTab: nextDemoTab,
+      });
+      pushPathIfChanged(targetPath);
+
+      if (tab === 'software-tax') {
+        setTimeout(() => {
+          const el = document.getElementById('full-software-engine');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }, 80);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    [pushPathIfChanged, selectedBlog, selectedServiceSlug, softwareDemoTab]
+  );
+
+  const navigateToServiceSlug = useCallback(
+    (slug: string) => {
+      const matched = getServiceLandingBySlug(slug);
+      if (!matched) {
+        handleNavigate('services');
+        return;
+      }
+      setSelectedService(null);
+      setSelectedCourse(null);
+      setSelectedBlog(null);
+      setSelectedServiceSlug(matched.slug);
+      setActiveTab('service-detail');
+      pushPathIfChanged(`/services/${matched.slug}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [handleNavigate, pushPathIfChanged]
+  );
+
+  const navigateToBlogSlug = useCallback(
+    (slug: string) => {
+      const matched = getBlogPostBySlug(slug);
+      if (!matched) {
+        handleNavigate('blog');
+        return;
+      }
+      setSelectedService(null);
+      setSelectedServiceSlug(null);
+      setSelectedCourse(null);
+      setSelectedBlog(matched);
+      setActiveTab('blog-article');
+      pushPathIfChanged(`/blog/${matched.slug}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [handleNavigate, pushPathIfChanged]
+  );
+
+  const handleSelectSoftwareDemoTab = useCallback(
+    (demo: SoftwareDemoType) => {
+      setSoftwareDemoTab(demo);
+      if (activeTab === 'software' || activeTab === 'software-tax') {
+        const nextTab: NavigationTab = demo === 'calculators' ? 'software-tax' : 'software';
+        setActiveTab(nextTab);
+        pushPathIfChanged(buildPathForState({ tab: nextTab, softwareDemoTab: demo }));
+      }
+    },
+    [activeTab, pushPathIfChanged]
+  );
 
   const handleOpenGetStarted = useCallback(() => {
-    setActiveTab('contact');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+    trackConversion('cta_click', { location: window.location.pathname, label: 'get_started' });
+    handleNavigate('contact');
+  }, [handleNavigate]);
 
-  const handleRequestQuote = useCallback((_service: ServiceItem) => {
-    setSelectedService(null);
-    setActiveTab('contact');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  const handleRequestQuote = useCallback(
+    (_service: ServiceItem) => {
+      trackConversion('service_quote_request', {
+        location: window.location.pathname,
+        label: _service.id,
+      });
+      setSelectedService(null);
+      handleNavigate('contact');
+    },
+    [handleNavigate]
+  );
 
   const handleSelectProductDemo = useCallback(
     (productId: string, targetAnchorId: string) => {
       const product = SOFTWARE_PRODUCTS.find((p) => p.id === productId);
       const demoKey: SoftwareDemoKey = product?.demoTabKey || 'business';
       setSoftwareDemoTab(demoKey);
+      if (activeTab === 'software' || activeTab === 'software-tax') {
+        pushPathIfChanged(buildPathForState({ tab: 'software', softwareDemoTab: demoKey }));
+      }
       setTimeout(() => {
         const el = document.getElementById(targetAnchorId);
         el?.scrollIntoView({ behavior: 'smooth' });
       }, 40);
     },
-    []
+    [activeTab, pushPathIfChanged]
   );
 
-  const handleNavigateToDemoFromPricing = useCallback((softwareKey: string) => {
-    setActiveTab('software');
-    setSoftwareDemoTab((softwareKey as SoftwareDemoKey) || 'business');
-    setTimeout(() => {
-      const el = document.getElementById('full-software-engine');
-      el?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  }, []);
+  const handleNavigateToDemoFromPricing = useCallback(
+    (softwareKey: string) => {
+      const demoKey = (softwareKey as SoftwareDemoKey) || 'business';
+      setSoftwareDemoTab(demoKey);
+      const nextTab: NavigationTab = demoKey === 'calculators' ? 'software-tax' : 'software';
+      setActiveTab(nextTab);
+      pushPathIfChanged(buildPathForState({ tab: nextTab, softwareDemoTab: demoKey }));
+      setTimeout(() => {
+        const el = document.getElementById('full-software-engine');
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    },
+    [pushPathIfChanged]
+  );
+
+  const activeServiceLanding =
+    activeTab === 'service-detail' && selectedServiceSlug
+      ? getServiceLandingBySlug(selectedServiceSlug) || null
+      : null;
+
+  // Dynamic route SEO meta tags, JSON-LD structured data & privacy-safe pageview tracking
+  useEffect(() => {
+    const meta = ROUTE_SEO_META[activeTab] || ROUTE_SEO_META.home;
+    const bnMeta = ROUTE_SEO_META_BN[activeTab] || ROUTE_SEO_META_BN.home;
+    const localizedBlog = selectedBlog ? localizeBlogPost(selectedBlog, isBengali) : null;
+
+    let canonicalPath = buildPathForState({
+      tab: activeTab,
+      serviceSlug: activeServiceLanding?.slug || selectedServiceSlug,
+      blogSlug: selectedBlog?.slug || null,
+      softwareDemoTab,
+    });
+    if (activeTab === 'not-found' && typeof window !== 'undefined') {
+      canonicalPath = window.location.pathname || '/404';
+    }
+
+    let title = isBengali ? bnMeta.title : meta.title;
+    let description = isBengali ? bnMeta.description : meta.description;
+
+    if (activeTab === 'service-detail' && activeServiceLanding) {
+      title = isBengali ? activeServiceLanding.seoTitleBn : activeServiceLanding.seoTitle;
+      description = isBengali
+        ? activeServiceLanding.seoDescriptionBn
+        : activeServiceLanding.seoDescription;
+    } else if (localizedBlog) {
+      title = `${localizedBlog.title} | ${pick('TecHisab', 'টেকহিসাব')}`;
+      description = localizedBlog.metaDescription || localizedBlog.summary;
+    }
+
+    const breadcrumbs: { name: string; path: string }[] = [
+      { name: pick('Home', 'হোম'), path: '/' },
+    ];
+    if (activeTab === 'service-detail' && activeServiceLanding) {
+      breadcrumbs.push({ name: pick('Services', 'সেবাসমূহ'), path: '/services' });
+      breadcrumbs.push({
+        name: isBengali ? activeServiceLanding.badgeBn : activeServiceLanding.badge,
+        path: `/services/${activeServiceLanding.slug}`,
+      });
+    } else if (activeTab === 'blog-article' && localizedBlog) {
+      breadcrumbs.push({ name: pick('Blog', 'ব্লগ'), path: '/blog' });
+      breadcrumbs.push({
+        name: localizedBlog.title,
+        path: `/blog/${localizedBlog.slug}`,
+      });
+    } else if (activeTab === 'software' || activeTab === 'software-tax') {
+      breadcrumbs.push({ name: pick('Software', 'সফটওয়্যার'), path: '/software' });
+      const activeSoft = SOFTWARE_PRODUCTS.find((p) => p.demoTabKey === softwareDemoTab);
+      const demoLabel =
+        softwareDemoTab === 'calculators'
+          ? pick('Business & Financial Calculators', 'বিজনেস ক্যালকুলেটরস')
+          : activeSoft?.name || 'TecHisab Business';
+      breadcrumbs.push({
+        name: demoLabel,
+        path: canonicalPath,
+      });
+    } else if (activeTab !== 'home' && activeTab !== 'not-found') {
+      const tabLabels: Partial<Record<NavigationTab, string>> = {
+        services: pick('Services', 'সেবাসমূহ'),
+        training: pick('Training', 'প্রশিক্ষণ'),
+        pricing: pick('Pricing', 'মূল্যতালিকা'),
+        blog: pick('Blog', 'ব্লগ'),
+        about: pick('About TecHisab', 'আমাদের পরিচিতি'),
+        contact: pick('Contact', 'যোগাযোগ'),
+        'privacy-policy': pick('Privacy Policy', 'গোপনীয়তা নীতি'),
+        'terms-of-service': pick('Terms of Service', 'সেবার শর্তাবলি'),
+        'refund-policy': pick('Refund & Cancellation Policy', 'রিফান্ড ও বাতিলকরণ নীতিমালা'),
+        'tax-disclaimer': pick('Tax Disclaimer', 'কর ও বিধিবদ্ধ ঘোষণা'),
+      };
+      breadcrumbs.push({
+        name: tabLabels[activeTab] || title.split('|')[0].trim(),
+        path: canonicalPath,
+      });
+    }
+
+    updatePageSeoMeta({
+      title,
+      description,
+      canonicalPath,
+      isBengali,
+      type: activeTab === 'blog-article' && localizedBlog ? 'article' : 'website',
+      noindex: activeTab === 'not-found',
+    });
+
+    syncStructuredData({
+      activeTab,
+      canonicalPath,
+      isBengali,
+      serviceLanding: activeServiceLanding,
+      blogPost: localizedBlog,
+      breadcrumbs,
+    });
+
+    trackPageView(canonicalPath, title);
+  }, [
+    activeTab,
+    activeServiceLanding,
+    selectedServiceSlug,
+    selectedBlog,
+    softwareDemoTab,
+    isBengali,
+    pick,
+  ]);
 
   const localizedServices = getLocalizedServices(isBengali);
   const localizedCourses = getLocalizedTrainingCourses(isBengali);
@@ -332,31 +655,55 @@ function MainApp() {
   const showBreadcrumbs =
     activeTab !== 'home' || selectedService !== null || selectedCourse !== null || selectedBlog !== null;
 
+  const handleAnchorNav = (e: React.MouseEvent<HTMLAnchorElement>, tab: NavigationTab) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    handleNavigate(tab);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-transparent text-[#0B1730] dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden">
       {/* Subtle Top Reading Progress */}
       <ScrollProgressBar />
 
-      {/* Site-Wide Real-Time 3D WebGL Spatial Scene */}
-      <GlobalThreeBackdrop />
+      {/* Deferred Site-Wide Real-Time 3D WebGL Spatial Scene */}
+      {showThreeBackdrop && (
+        <Suspense fallback={null}>
+          <GlobalThreeBackdrop />
+        </Suspense>
+      )}
 
       {/* Sticky Corporate Navigation */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleNavigate}
         onOpenGetStarted={handleOpenGetStarted}
         onNavigateToService={(service) => {
-          setActiveTab('services');
-          setSelectedService(service);
+          const slug = SERVICE_ID_TO_LANDING_SLUG[service.id];
+          if (slug) {
+            navigateToServiceSlug(slug);
+          } else {
+            handleNavigate('services');
+            setSelectedService(service);
+          }
         }}
         onNavigateToSoftware={(softwareId) => {
+          const product = SOFTWARE_PRODUCTS.find((p) => p.id === softwareId);
+          const demoKey: SoftwareDemoKey = product?.demoTabKey || 'business';
+          setSoftwareDemoTab(demoKey);
           setActiveTab('software');
-          handleSelectProductDemo(softwareId, 'full-software-engine');
+          pushPathIfChanged(buildPathForState({ tab: 'software', softwareDemoTab: demoKey }));
+          setTimeout(() => {
+            const el = document.getElementById('full-software-engine');
+            el?.scrollIntoView({ behavior: 'smooth' });
+          }, 80);
         }}
         onNavigateToBlog={(post) => {
-          setActiveTab('blog');
-          if (post) setSelectedBlog(post);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (post?.slug) {
+            navigateToBlogSlug(post.slug);
+          } else {
+            handleNavigate('blog');
+          }
         }}
       />
 
@@ -368,6 +715,7 @@ function MainApp() {
         <Breadcrumbs
           activeTab={activeTab}
           selectedService={selectedService}
+          selectedServiceLanding={activeServiceLanding}
           selectedCourse={selectedCourse}
           selectedBlog={selectedBlog}
           serviceFilter={serviceFilter}
@@ -376,12 +724,19 @@ function MainApp() {
           onNavigate={handleNavigate}
           onClearSelectedService={() => setSelectedService(null)}
           onClearSelectedCourse={() => setSelectedCourse(null)}
-          onClearSelectedBlog={() => setSelectedBlog(null)}
+          onClearSelectedBlog={() => {
+            setSelectedBlog(null);
+            if (activeTab === 'blog-article') {
+              handleNavigate('blog');
+            }
+          }}
           onSetServiceFilter={setServiceFilter}
-          onSelectSoftwareDemoTab={setSoftwareDemoTab}
+          onSelectSoftwareDemoTab={handleSelectSoftwareDemoTab}
           onSelectService={setSelectedService}
+          onSelectServiceSlug={navigateToServiceSlug}
           onSelectCourse={setSelectedCourse}
-          onSelectBlog={setSelectedBlog}
+          onSelectBlog={(post) => navigateToBlogSlug(post.slug)}
+          onSelectBlogCategory={setBlogCategory}
         />
       )}
 
@@ -435,6 +790,7 @@ function MainApp() {
                         key={service.id}
                         service={service}
                         onSelect={(s) => setSelectedService(s)}
+                        onOpenServicePage={navigateToServiceSlug}
                         onRequestQuote={handleRequestQuote}
                       />
                     ))}
@@ -443,17 +799,17 @@ function MainApp() {
 
                 <ScrollReveal direction="up" delay={0.1}>
                   <div className="text-center pt-2">
-                    <button
-                      type="button"
-                      onClick={() => handleNavigate('services')}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border border-[#D7E2F3] dark:border-slate-700 hover:border-[#0345A4] text-[#0345A4] dark:text-sky-400 text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
+                    <a
+                      href="/services"
+                      onClick={(e) => handleAnchorNav(e, 'services')}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border border-[#D7E2F3] dark:border-slate-700 hover:border-[#0345A4] text-[#0345A4] dark:text-sky-400 text-xs sm:text-sm font-bold transition-all shadow-xs"
                     >
                       <Layers className="w-4 h-4" />
                       <span>
                         {pick('Explore Complete Services Directory', 'সম্পূর্ণ সেবা তালিকা দেখুন')}
                       </span>
                       <ArrowRight className="w-4 h-4" />
-                    </button>
+                    </a>
                   </div>
                 </ScrollReveal>
               </div>
@@ -466,15 +822,15 @@ function MainApp() {
                   sectionId="home-software-portfolio"
                   workspaceAnchorId="home-software-demos"
                   activeDemo={softwareDemoTab}
-                  onSelectDemo={setSoftwareDemoTab}
+                  onSelectDemo={handleSelectSoftwareDemoTab}
                   onRequestOnboarding={handleOpenGetStarted}
                 />
 
                 <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate('software')}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
+                  <a
+                    href="/software"
+                    onClick={(e) => handleAnchorNav(e, 'software')}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white text-xs sm:text-sm font-bold transition-all shadow-xs"
                   >
                     <Monitor className="w-4 h-4" />
                     <span>
@@ -484,7 +840,7 @@ function MainApp() {
                       )}
                     </span>
                     <ArrowRight className="w-4 h-4" />
-                  </button>
+                  </a>
                 </div>
               </div>
             </section>
@@ -517,10 +873,10 @@ function MainApp() {
                   </div>
 
                   <div className="text-center">
-                    <button
-                      type="button"
-                      onClick={() => handleNavigate('training')}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border border-[#D7E2F3] dark:border-slate-700 hover:border-[#0345A4] text-[#0345A4] dark:text-sky-400 text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
+                    <a
+                      href="/training"
+                      onClick={(e) => handleAnchorNav(e, 'training')}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-900 border border-[#D7E2F3] dark:border-slate-700 hover:border-[#0345A4] text-[#0345A4] dark:text-sky-400 text-xs sm:text-sm font-bold transition-all shadow-xs"
                     >
                       <GraduationCap className="w-4 h-4" />
                       <span>
@@ -530,7 +886,7 @@ function MainApp() {
                         )}
                       </span>
                       <ArrowRight className="w-4 h-4" />
-                    </button>
+                    </a>
                   </div>
                 </div>
               </section>
@@ -548,10 +904,12 @@ function MainApp() {
 
             {/* Pricing Preview */}
             <ScrollReveal direction="up">
-              <PricingSection
-                onSelectPlan={handleOpenGetStarted}
-                onNavigateToSoftwareDemo={handleNavigateToDemoFromPricing}
-              />
+              <Suspense fallback={<RouteFallback />}>
+                <PricingSection
+                  onSelectPlan={handleOpenGetStarted}
+                  onNavigateToSoftwareDemo={handleNavigateToDemoFromPricing}
+                />
+              </Suspense>
             </ScrollReveal>
 
             {/* 5.6 Why Choose TecHisab & FAQs */}
@@ -561,7 +919,9 @@ function MainApp() {
 
             {/* About Preview */}
             <ScrollReveal direction="up">
-              <AboutSection onContactClick={handleOpenGetStarted} />
+              <Suspense fallback={<RouteFallback />}>
+                <AboutSection onContactClick={handleOpenGetStarted} />
+              </Suspense>
             </ScrollReveal>
 
             {/* 5.7 Final CTA Banner */}
@@ -573,12 +933,13 @@ function MainApp() {
           </div>
         )}
 
-        {/* ==================== SERVICES TAB ==================== */}
+        {/* ==================== SERVICES DIRECTORY TAB ==================== */}
         {activeTab === 'services' && (
           <section className="py-16 space-y-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
               <ScrollReveal direction="up">
                 <SectionHeading
+                  as="h1"
                   badge={pick('Services Directory', 'সেবাসমূহের ডিরেক্টরি')}
                   title={pick(
                     'Accounting, Payroll, Tax, VAT, BPO & Technology Services',
@@ -632,6 +993,7 @@ function MainApp() {
                       key={service.id}
                       service={service}
                       onSelect={(s) => setSelectedService(s)}
+                      onOpenServicePage={navigateToServiceSlug}
                       onRequestQuote={handleRequestQuote}
                     />
                   ))}
@@ -645,6 +1007,25 @@ function MainApp() {
           </section>
         )}
 
+        {/* ==================== DEDICATED SERVICE LANDING PAGE ==================== */}
+        {activeTab === 'service-detail' && activeServiceLanding && (
+          <Suspense fallback={<RouteFallback />}>
+            <ServiceLandingPage
+              service={activeServiceLanding}
+              onNavigateServices={() => handleNavigate('services')}
+              onSelectServiceSlug={navigateToServiceSlug}
+              onOpenContact={handleOpenGetStarted}
+              onOpenSoftwareDemo={(demoKey) => {
+                setSoftwareDemoTab(demoKey);
+                setActiveTab('software');
+                pushPathIfChanged(buildPathForState({ tab: 'software', softwareDemoTab: demoKey }));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onOpenBlogSlug={navigateToBlogSlug}
+            />
+          </Suspense>
+        )}
+
         {/* ==================== SOFTWARE TAB ==================== */}
         {(activeTab === 'software' || activeTab === 'software-tax') && (
           <section className="py-16 space-y-12">
@@ -653,8 +1034,9 @@ function MainApp() {
                 sectionId="software-portfolio-page"
                 workspaceAnchorId="full-software-engine"
                 activeDemo={softwareDemoTab}
-                onSelectDemo={setSoftwareDemoTab}
+                onSelectDemo={handleSelectSoftwareDemoTab}
                 onRequestOnboarding={handleOpenGetStarted}
+                isStandalonePage
               />
 
               <ScrollReveal direction="up">
@@ -681,6 +1063,7 @@ function MainApp() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
               <ScrollReveal direction="up">
                 <SectionHeading
+                  as="h1"
                   badge={pick('TecHisab Training Academy', 'টেকহিসাব ট্রেনিং একাডেমি')}
                   title={pick(
                     'Practical Computer, Accounting, Tax & Technology Courses',
@@ -723,13 +1106,13 @@ function MainApp() {
                       )}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleOpenGetStarted}
-                    className="px-4 py-2.5 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white font-bold shrink-0 transition-colors cursor-pointer"
+                  <a
+                    href="/contact"
+                    onClick={(e) => handleAnchorNav(e, 'contact')}
+                    className="px-4 py-2.5 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white font-bold shrink-0 transition-colors"
                   >
                     {pick('Inquire About Batch Dates', 'নতুন ব্যাচের সময়সূচি জানুন')}
-                  </button>
+                  </a>
                 </div>
               </ScrollReveal>
 
@@ -742,9 +1125,10 @@ function MainApp() {
 
         {/* ==================== PRICING TAB ==================== */}
         {activeTab === 'pricing' && (
-          <ScrollReveal direction="up">
+          <Suspense fallback={<RouteFallback />}>
             <div>
               <PricingSection
+                isStandalonePage
                 onSelectPlan={handleOpenGetStarted}
                 onNavigateToSoftwareDemo={handleNavigateToDemoFromPricing}
               />
@@ -752,16 +1136,18 @@ function MainApp() {
                 <CtaBanner onPrimaryClick={handleOpenGetStarted} />
               </div>
             </div>
-          </ScrollReveal>
+          </Suspense>
         )}
 
         {/* ==================== BLOG TAB ==================== */}
         {activeTab === 'blog' && (
-          <ScrollReveal direction="up">
+          <Suspense fallback={<RouteFallback />}>
             <div>
               <BlogSection
+                isStandalonePage
                 selectedPost={selectedBlog}
                 onSelectPost={setSelectedBlog}
+                onOpenArticleSlug={navigateToBlogSlug}
                 activeCategory={blogCategory}
                 onSelectCategory={setBlogCategory}
               />
@@ -769,34 +1155,57 @@ function MainApp() {
                 <CtaBanner onPrimaryClick={handleOpenGetStarted} />
               </div>
             </div>
-          </ScrollReveal>
+          </Suspense>
+        )}
+
+        {/* ==================== DEDICATED BLOG ARTICLE PAGE ==================== */}
+        {activeTab === 'blog-article' && selectedBlog && (
+          <Suspense fallback={<RouteFallback />}>
+            <BlogArticlePage
+              post={selectedBlog}
+              allPosts={BLOG_POSTS}
+              onBackToBlog={() => handleNavigate('blog')}
+              onSelectArticleSlug={navigateToBlogSlug}
+              onSelectServiceSlug={navigateToServiceSlug}
+              onOpenContact={handleOpenGetStarted}
+            />
+          </Suspense>
         )}
 
         {/* ==================== ABOUT TAB ==================== */}
         {activeTab === 'about' && (
-          <ScrollReveal direction="up">
+          <Suspense fallback={<RouteFallback />}>
             <div>
-              <AboutSection onContactClick={handleOpenGetStarted} />
+              <AboutSection isStandalonePage onContactClick={handleOpenGetStarted} />
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
                 <CtaBanner onPrimaryClick={handleOpenGetStarted} />
               </div>
             </div>
-          </ScrollReveal>
+          </Suspense>
         )}
 
         {/* ==================== CONTACT TAB ==================== */}
         {activeTab === 'contact' && (
-          <ScrollReveal direction="up">
-            <ContactSection />
-          </ScrollReveal>
+          <Suspense fallback={<RouteFallback />}>
+            <ContactSection isStandalonePage />
+          </Suspense>
         )}
 
         {/* ==================== LEGAL PAGES ==================== */}
         {isLegalRoute && (
-          <LegalPageView
-            activePage={activeTab as LegalPageRoute}
-            onNavigate={handleNavigate}
-          />
+          <Suspense fallback={<RouteFallback />}>
+            <LegalPageView
+              activePage={activeTab as LegalPageRoute}
+              onNavigate={handleNavigate}
+            />
+          </Suspense>
+        )}
+
+        {/* ==================== 404 PAGE ==================== */}
+        {activeTab === 'not-found' && (
+          <Suspense fallback={<RouteFallback />}>
+            <NotFoundView onNavigate={handleNavigate} />
+          </Suspense>
         )}
       </main>
 
@@ -805,6 +1214,7 @@ function MainApp() {
         service={selectedService}
         onClose={() => setSelectedService(null)}
         onRequestQuote={handleRequestQuote}
+        onOpenServicePage={navigateToServiceSlug}
       />
 
       <EnrollmentModal
@@ -813,7 +1223,11 @@ function MainApp() {
       />
 
       {/* Footer */}
-      <Footer onNavigate={handleNavigate} />
+      <Footer
+        onNavigate={handleNavigate}
+        onSelectServiceSlug={navigateToServiceSlug}
+        onSelectSoftwareDemoTab={handleSelectSoftwareDemoTab}
+      />
 
       {/* Floating Consultation Desk */}
       <QuickHelpChat />

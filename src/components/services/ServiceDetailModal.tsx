@@ -2,18 +2,21 @@ import React, { useEffect, useRef } from 'react';
 import { ServiceItem } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { localizeService } from '../../data/localizedData';
-import { X, CheckCircle2, PackageCheck, Users, ArrowRight, ShieldCheck } from 'lucide-react';
+import { SERVICE_ID_TO_LANDING_SLUG } from '../../utils/routing';
+import { X, CheckCircle2, PackageCheck, Users, ArrowRight, ShieldCheck, ExternalLink } from 'lucide-react';
 
 interface ServiceDetailModalProps {
   service: ServiceItem | null;
   onClose: () => void;
   onRequestQuote: (service: ServiceItem) => void;
+  onOpenServicePage?: (slug: string) => void;
 }
 
 export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
   service,
   onClose,
   onRequestQuote,
+  onOpenServicePage,
 }) => {
   const { isBengali, pick } = useLanguage();
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -37,6 +40,7 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
 
   if (!service) return null;
   const loc = localizeService(service, isBengali);
+  const landingSlug = loc.landingSlug || SERVICE_ID_TO_LANDING_SLUG[loc.id];
 
   return (
     <div
@@ -160,14 +164,33 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#F4F8FF] dark:bg-slate-800/80 border-t border-[#D7E2F3] dark:border-slate-800 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-[#5F6D82] dark:text-slate-400 hover:text-[#0B1730] dark:hover:text-white cursor-pointer"
-          >
-            {pick('Close', 'বন্ধ করুন')}
-          </button>
+        <div className="p-4 bg-[#F4F8FF] dark:bg-slate-800/80 border-t border-[#D7E2F3] dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-semibold text-[#5F6D82] dark:text-slate-400 hover:text-[#0B1730] dark:hover:text-white cursor-pointer"
+            >
+              {pick('Close', 'বন্ধ করুন')}
+            </button>
+
+            {landingSlug && onOpenServicePage && (
+              <a
+                href={`/services/${landingSlug}`}
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                    e.preventDefault();
+                    onClose();
+                    onOpenServicePage(landingSlug);
+                  }
+                }}
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-[#0345A4] dark:text-sky-400 hover:underline"
+              >
+                <span>{pick('Full Service Page', 'পূর্ণাঙ্গ সেবা পেজ')}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
 
           <button
             type="button"

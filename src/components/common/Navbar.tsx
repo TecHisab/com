@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NavbarSearch } from './NavbarSearch';
+import { buildPathForState } from '../../utils/routing';
 import { Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
 
 interface NavbarProps {
@@ -53,6 +54,20 @@ export const Navbar: React.FC<NavbarProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, tabId: NavigationTab) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    handleNavClick(tabId);
+  };
+
+  const isNavLinkActive = (linkId: NavigationTab) => {
+    if (activeTab === linkId) return true;
+    if (linkId === 'software' && activeTab === 'software-tax') return true;
+    if (linkId === 'services' && activeTab === 'service-detail') return true;
+    if (linkId === 'blog' && activeTab === 'blog-article') return true;
+    return false;
+  };
+
   return (
     <header
       id="main-navbar-header"
@@ -65,14 +80,14 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Official Brand Logo */}
-          <button
-            type="button"
-            onClick={() => handleNavClick('home')}
-            className="flex items-center focus:outline-none cursor-pointer group text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          <a
+            href="/"
+            onClick={(e) => handleAnchorClick(e, 'home')}
+            className="flex items-center focus:outline-none group text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
             aria-label="TecHisab Home"
           >
             <BrandLogo size="md" />
-          </button>
+          </a>
 
           {/* Desktop Navigation Links */}
           <nav
@@ -80,14 +95,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             aria-label="Main Navigation"
           >
             {navLinks.map((link) => {
-              const isActive = activeTab === link.id || (link.id === 'software' && activeTab === 'software-tax');
+              const isActive = isNavLinkActive(link.id);
+              const href = buildPathForState({ tab: link.id });
               return (
-                <button
+                <a
                   key={link.id}
                   id={`nav-link-${link.id}`}
-                  type="button"
-                  onClick={() => handleNavClick(link.id)}
-                  className={`relative px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                  href={href}
+                  onClick={(e) => handleAnchorClick(e, link.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`relative px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                     isActive
                       ? 'text-[#0345A4] dark:text-sky-400 bg-[#F4F8FF] dark:bg-slate-900'
                       : 'text-[#0B1730]/80 dark:text-slate-300 hover:text-[#0345A4] dark:hover:text-white hover:bg-[#F4F8FF]/60 dark:hover:bg-slate-900/60'
@@ -97,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {isActive && (
                     <span className="absolute bottom-0.5 left-3.5 right-3.5 h-0.5 rounded-full bg-[#0345A4] dark:bg-sky-400" />
                   )}
-                </button>
+                </a>
               );
             })}
           </nav>
@@ -136,17 +153,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            <button
-              type="button"
+            <a
               id="navbar-consult-btn"
-              onClick={() => handleNavClick('contact')}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white text-sm font-semibold transition-all cursor-pointer shadow-xs active:scale-98"
+              href="/contact"
+              onClick={(e) => handleAnchorClick(e, 'contact')}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white text-sm font-semibold transition-all shadow-xs active:scale-98"
             >
               <span className={isBengali ? 'font-bangla' : ''}>
                 {isBengali ? 'পরামর্শ নিন' : 'Consult Us'}
               </span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </a>
           </div>
 
           {/* Mobile & Tablet Right Controls */}
@@ -201,34 +218,35 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <div className="grid grid-cols-2 gap-2">
             {navLinks.map((link) => {
-              const isActive = activeTab === link.id;
+              const isActive = isNavLinkActive(link.id);
+              const href = buildPathForState({ tab: link.id });
               return (
-                <button
+                <a
                   key={link.id}
-                  type="button"
-                  onClick={() => handleNavClick(link.id)}
-                  className={`px-3.5 py-2.5 rounded-xl text-left text-sm font-semibold transition-all cursor-pointer ${
+                  href={href}
+                  onClick={(e) => handleAnchorClick(e, link.id)}
+                  className={`px-3.5 py-2.5 rounded-xl text-left text-sm font-semibold transition-all ${
                     isActive
                       ? 'bg-[#F4F8FF] dark:bg-sky-950/60 text-[#0345A4] dark:text-sky-400 border border-[#D7E2F3] dark:border-sky-900'
                       : 'text-[#0B1730] dark:text-slate-300 hover:bg-[#F4F8FF] dark:hover:bg-slate-800'
                   } ${isBengali ? 'font-bangla' : ''}`}
                 >
                   {link.label}
-                </button>
+                </a>
               );
             })}
           </div>
 
-          <button
-            type="button"
-            onClick={() => handleNavClick('contact')}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white font-semibold text-sm transition-colors cursor-pointer"
+          <a
+            href="/contact"
+            onClick={(e) => handleAnchorClick(e, 'contact')}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white font-semibold text-sm transition-colors"
           >
             <span className={isBengali ? 'font-bangla' : ''}>
               {isBengali ? 'পরামর্শের জন্য অনুরোধ করুন' : 'Request a Consultation'}
             </span>
             <ArrowRight className="w-4 h-4" />
-          </button>
+          </a>
         </div>
       )}
     </header>

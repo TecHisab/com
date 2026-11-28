@@ -176,19 +176,22 @@ export const NavbarSearch: React.FC<NavbarSearchProps> = ({
     setIsOpen(false);
 
     if (item.type === 'service') {
-      onNavigateTab('services');
       if (onNavigateToService) {
         onNavigateToService(item.rawItem as ServiceItem);
+      } else {
+        onNavigateTab('services');
       }
     } else if (item.type === 'software') {
-      onNavigateTab('software');
       if (onNavigateToSoftware) {
         onNavigateToSoftware((item.rawItem as SoftwareProduct).id);
+      } else {
+        onNavigateTab('software');
       }
     } else if (item.type === 'blog') {
-      onNavigateTab('blog');
       if (onNavigateToBlog) {
         onNavigateToBlog(item.rawItem as BlogPost);
+      } else {
+        onNavigateTab('blog');
       }
     }
   };

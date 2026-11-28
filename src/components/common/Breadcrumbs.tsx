@@ -1,16 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavigationTab, ServiceItem, TrainingCourse, BlogPost, SoftwareDemoKey } from '../../types';
+import {
+  NavigationTab,
+  ServiceItem,
+  TrainingCourse,
+  BlogPost,
+  SoftwareDemoKey,
+  ServiceLandingPageData,
+} from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { useFeedback } from '../../context/FeedbackContext';
 import { SERVICES_DATA } from '../../data/servicesData';
+import { SERVICE_LANDING_PAGES } from '../../data/serviceLandingData';
 import { TRAINING_COURSES } from '../../data/trainingData';
-import { BLOG_POSTS, BLOG_CATEGORIES } from '../../data/blogData';
+import { BLOG_CATEGORIES } from '../../data/blogData';
 import {
   localizeService,
   localizeCourse,
   localizeBlogPost,
   getBlogCategoryLabel,
 } from '../../data/localizedData';
+import { buildPathForState } from '../../utils/routing';
 import {
   Home,
   ChevronRight,
@@ -36,6 +45,7 @@ export type SoftwareDemoType = SoftwareDemoKey;
 export interface BreadcrumbsProps {
   activeTab: NavigationTab;
   selectedService: ServiceItem | null;
+  selectedServiceLanding?: ServiceLandingPageData | null;
   selectedCourse: TrainingCourse | null;
   selectedBlog?: BlogPost | null;
   serviceFilter: string;
@@ -48,13 +58,16 @@ export interface BreadcrumbsProps {
   onSetServiceFilter?: (filter: string) => void;
   onSelectSoftwareDemoTab?: (demo: SoftwareDemoType) => void;
   onSelectService?: (service: ServiceItem) => void;
+  onSelectServiceSlug?: (slug: string) => void;
   onSelectCourse?: (course: TrainingCourse) => void;
   onSelectBlog?: (post: BlogPost) => void;
+  onSelectBlogCategory?: (category: string) => void;
 }
 
 interface CrumbItem {
   id: string;
   label: string;
+  href?: string;
   icon?: React.ComponentType<{ className?: string }>;
   onClick?: () => void;
   isCurrent: boolean;
@@ -62,6 +75,7 @@ interface CrumbItem {
   dropdownItems?: {
     id: string;
     label: string;
+    href: string;
     badge?: string;
     icon?: React.ComponentType<{ className?: string }>;
     onClick: () => void;
@@ -101,6 +115,7 @@ const LEGAL_LABELS: Record<string, { en: string; bn: string }> = {
 export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   activeTab,
   selectedService,
+  selectedServiceLanding,
   selectedCourse,
   selectedBlog,
   serviceFilter,
@@ -113,8 +128,9 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   onSetServiceFilter,
   onSelectSoftwareDemoTab,
   onSelectService,
+  onSelectServiceSlug,
   onSelectCourse,
-  onSelectBlog,
+  onSelectBlogCategory,
 }) => {
   const { isBengali, pick } = useLanguage();
   const { showFeedback } = useFeedback();
@@ -141,123 +157,86 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     };
   }, []);
 
-  // Synchronize clean hash state across tabs for shareable GitHub Pages navigation
-  useEffect(() => {
-    let targetHash = '';
-    if (activeTab === 'home') {
-      if (selectedService) {
-        targetHash = `#services/${selectedService.category}/${selectedService.id}`;
-      } else if (selectedCourse) {
-        targetHash = `#training/${selectedCourse.id}`;
-      } else {
-        targetHash = '#home';
-      }
-    } else if (activeTab === 'services') {
-      if (selectedService) {
-        targetHash = `#services/${selectedService.category}/${selectedService.id}`;
-      } else if (serviceFilter !== 'all') {
-        targetHash = `#services/${serviceFilter}`;
-      } else {
-        targetHash = '#services';
-      }
-    } else if (activeTab === 'software' || activeTab === 'software-tax') {
-      targetHash = `#software/${softwareDemoTab}`;
-    } else if (activeTab === 'training') {
-      targetHash = selectedCourse ? `#training/${selectedCourse.id}` : '#training';
-    } else if (activeTab === 'pricing') {
-      targetHash = '#pricing';
-    } else if (activeTab === 'blog') {
-      if (selectedBlog) {
-        targetHash = `#blog/${selectedBlog.id}`;
-      } else if (blogCategory && blogCategory !== 'all') {
-        targetHash = `#blog/category/${encodeURIComponent(blogCategory)}`;
-      } else {
-        targetHash = '#blog';
-      }
-    } else {
-      targetHash = `#${activeTab}`;
-    }
-
-    if (targetHash && window.location.hash !== targetHash) {
-      window.history.replaceState(null, '', targetHash);
-    }
-  }, [activeTab, selectedService, selectedCourse, selectedBlog, serviceFilter, softwareDemoTab, blogCategory]);
-
-  // Listen to hash changes and initial load path parameters
-  useEffect(() => {
-    const syncFromUrl = () => {
-      const hash = window.location.hash.replace(/^#\/?/, '');
-      if (!hash) return;
-
-      const segments = hash.split('/').filter(Boolean);
-      const mainSegment = segments[0];
-
-      if (mainSegment === 'services') {
-        onNavigate('services');
-        if (segments[1] && segments[1] !== 'all' && onSetServiceFilter) {
-          onSetServiceFilter(segments[1]);
-        }
-        if (segments[2] && onSelectService) {
-          const matched = SERVICES_DATA.find((s) => s.id === segments[2]);
-          if (matched) onSelectService(matched);
-        }
-      } else if (mainSegment === 'software') {
-        onNavigate('software');
-        if (segments[1] && onSelectSoftwareDemoTab) {
-          onSelectSoftwareDemoTab(segments[1] as SoftwareDemoType);
-        }
-      } else if (mainSegment === 'training') {
-        onNavigate('training');
-        if (segments[1] && onSelectCourse) {
-          const matched = TRAINING_COURSES.find((c) => c.id === segments[1]);
-          if (matched) onSelectCourse(matched);
-        }
-      } else if (mainSegment === 'blog') {
-        onNavigate('blog');
-        if (segments[1] && segments[1] !== 'category' && onSelectBlog) {
-          const matched = BLOG_POSTS.find((p) => p.id === segments[1]);
-          if (matched) onSelectBlog(matched);
-        }
-      } else if (
-        [
-          'home',
-          'about',
-          'pricing',
-          'contact',
-          'privacy-policy',
-          'terms-of-service',
-          'refund-policy',
-          'tax-disclaimer',
-        ].includes(mainSegment)
-      ) {
-        onNavigate(mainSegment as NavigationTab);
-      }
-    };
-
-    syncFromUrl();
-    window.addEventListener('popstate', syncFromUrl);
-    window.addEventListener('hashchange', syncFromUrl);
-    return () => {
-      window.removeEventListener('popstate', syncFromUrl);
-      window.removeEventListener('hashchange', syncFromUrl);
-    };
-  }, [onNavigate, onSetServiceFilter, onSelectService, onSelectCourse, onSelectSoftwareDemoTab, onSelectBlog]);
+  const handleAnchorClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    cb?: () => void
+  ) => {
+    if (!cb) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    cb();
+  };
 
   const crumbs: CrumbItem[] = [];
 
   const primarySectionDropdown = [
-    { id: 'sec-services', label: isBengali ? 'সেবাসমূহ' : 'Services', icon: Briefcase, onClick: () => { onClearSelectedService(); onClearSelectedCourse(); onNavigate('services'); } },
-    { id: 'sec-software', label: isBengali ? 'সফটওয়্যার পোর্টফোলিও' : 'Software', icon: Laptop, onClick: () => { onClearSelectedService(); onClearSelectedCourse(); onNavigate('software'); } },
-    { id: 'sec-training', label: isBengali ? 'প্রশিক্ষণ' : 'Training', icon: GraduationCap, onClick: () => { onClearSelectedService(); onClearSelectedCourse(); onNavigate('training'); } },
-    { id: 'sec-pricing', label: isBengali ? 'মূল্যতালিকা' : 'Pricing', icon: DollarSign, onClick: () => onNavigate('pricing') },
-    { id: 'sec-blog', label: isBengali ? 'ব্লগ' : 'Blog', icon: BookOpen, onClick: () => onNavigate('blog') },
-    { id: 'sec-about', label: isBengali ? 'আমাদের পরিচিতি' : 'About', icon: Users, onClick: () => onNavigate('about') },
-    { id: 'sec-contact', label: isBengali ? 'যোগাযোগ' : 'Contact', icon: Mail, onClick: () => onNavigate('contact') },
+    {
+      id: 'sec-services',
+      label: isBengali ? 'সেবাসমূহ' : 'Services',
+      href: '/services',
+      icon: Briefcase,
+      onClick: () => {
+        onClearSelectedService();
+        onClearSelectedCourse();
+        onNavigate('services');
+      },
+    },
+    {
+      id: 'sec-software',
+      label: isBengali ? 'সফটওয়্যার পোর্টফোলিও' : 'Software',
+      href: '/software',
+      icon: Laptop,
+      onClick: () => {
+        onClearSelectedService();
+        onClearSelectedCourse();
+        onNavigate('software');
+      },
+    },
+    {
+      id: 'sec-training',
+      label: isBengali ? 'প্রশিক্ষণ' : 'Training',
+      href: '/training',
+      icon: GraduationCap,
+      onClick: () => {
+        onClearSelectedService();
+        onClearSelectedCourse();
+        onNavigate('training');
+      },
+    },
+    {
+      id: 'sec-pricing',
+      label: isBengali ? 'মূল্যতালিকা' : 'Pricing',
+      href: '/pricing',
+      icon: DollarSign,
+      onClick: () => onNavigate('pricing'),
+    },
+    {
+      id: 'sec-blog',
+      label: isBengali ? 'ব্লগ' : 'Blog',
+      href: '/blog',
+      icon: BookOpen,
+      onClick: () => onNavigate('blog'),
+    },
+    {
+      id: 'sec-about',
+      label: isBengali ? 'আমাদের পরিচিতি' : 'About',
+      href: '/about',
+      icon: Users,
+      onClick: () => onNavigate('about'),
+    },
+    {
+      id: 'sec-contact',
+      label: isBengali ? 'যোগাযোগ' : 'Contact',
+      href: '/contact',
+      icon: Mail,
+      onClick: () => onNavigate('contact'),
+    },
   ];
 
   crumbs.push({
     id: 'root-home',
     label: isBengali ? 'হোম' : 'Home',
+    href: '/',
     icon: Home,
     onClick: () => {
       onClearSelectedService();
@@ -269,9 +248,23 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     dropdownItems: primarySectionDropdown,
   });
 
+  const serviceLandingDropdown = SERVICE_LANDING_PAGES.map((svc) => ({
+    id: `svc-landing-${svc.slug}`,
+    label: isBengali ? svc.badgeBn : svc.badge,
+    href: `/services/${svc.slug}`,
+    onClick: () => {
+      if (onSelectServiceSlug) {
+        onSelectServiceSlug(svc.slug);
+      } else {
+        onNavigate('services');
+      }
+    },
+  }));
+
   const serviceCategoriesDropdown = Object.entries(SERVICE_CATEGORY_LABELS).map(([catId, names]) => ({
     id: `cat-${catId}`,
     label: isBengali ? names.bn : names.en,
+    href: '/services',
     onClick: () => {
       onClearSelectedService();
       if (onSetServiceFilter) onSetServiceFilter(catId);
@@ -284,18 +277,43 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     return {
       id: `soft-${key}`,
       label: isBengali ? item.bn : item.en,
+      href: buildPathForState({ tab: 'software', softwareDemoTab: key }),
       badge: item.badge,
       onClick: () => {
         if (onSelectSoftwareDemoTab) onSelectSoftwareDemoTab(key);
-        onNavigate('software');
+        onNavigate(key === 'calculators' ? 'software-tax' : 'software');
       },
     };
   });
 
-  if (activeTab === 'services' || (activeTab === 'home' && selectedService)) {
+  if (activeTab === 'service-detail' && selectedServiceLanding) {
     crumbs.push({
       id: 'crumb-services-root',
       label: isBengali ? 'সেবাসমূহ' : 'Services',
+      href: '/services',
+      icon: Briefcase,
+      onClick: () => {
+        onClearSelectedService();
+        if (onSetServiceFilter) onSetServiceFilter('all');
+        onNavigate('services');
+      },
+      isCurrent: false,
+      dropdownItems: serviceLandingDropdown,
+    });
+
+    crumbs.push({
+      id: `crumb-service-landing-${selectedServiceLanding.slug}`,
+      label: isBengali ? selectedServiceLanding.badgeBn : selectedServiceLanding.badge,
+      href: `/services/${selectedServiceLanding.slug}`,
+      icon: Briefcase,
+      isCurrent: true,
+      dropdownItems: serviceLandingDropdown,
+    });
+  } else if (activeTab === 'services' || (activeTab === 'home' && selectedService)) {
+    crumbs.push({
+      id: 'crumb-services-root',
+      label: isBengali ? 'সেবাসমূহ' : 'Services',
+      href: '/services',
       icon: Briefcase,
       onClick: () => {
         onClearSelectedService();
@@ -320,6 +338,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
         return {
           id: `svc-${s.id}`,
           label: locS.title,
+          href: '/services',
           badge: locS.tag,
           onClick: () => {
             if (onSelectService) onSelectService(s);
@@ -331,6 +350,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
       crumbs.push({
         id: `crumb-service-cat-${activeCatId}`,
         label: catLabel,
+        href: '/services',
         icon: Tag,
         onClick: () => {
           onClearSelectedService();
@@ -355,8 +375,10 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: 'crumb-software-root',
       label: isBengali ? 'সফটওয়্যার' : 'Software',
+      href: '/software',
       icon: Laptop,
       onClick: () => {
+        if (onSelectSoftwareDemoTab) onSelectSoftwareDemoTab('business');
         onNavigate('software');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
@@ -372,6 +394,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: `crumb-software-demo-${softwareDemoTab}`,
       label: isBengali ? activeSoftwareInfo.bn : activeSoftwareInfo.en,
+      href: buildPathForState({ tab: 'software', softwareDemoTab }),
       badge: activeSoftwareInfo.badge,
       isCurrent: true,
       dropdownItems: softwareToolsDropdown,
@@ -382,6 +405,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
       return {
         id: `course-${c.id}`,
         label: locC.title,
+        href: '/training',
         badge: locC.feeDisplay,
         onClick: () => {
           if (onSelectCourse) onSelectCourse(c);
@@ -393,6 +417,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: 'crumb-training-root',
       label: isBengali ? 'প্রশিক্ষণ' : 'Training',
+      href: '/training',
       icon: GraduationCap,
       onClick: () => {
         onClearSelectedCourse();
@@ -407,16 +432,19 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
       crumbs.push({
         id: `crumb-course-detail-${selectedCourse.id}`,
         label: locCourse.title,
+        href: '/training',
         icon: GraduationCap,
         isCurrent: true,
       });
     }
-  } else if (activeTab === 'blog') {
+  } else if (activeTab === 'blog' || activeTab === 'blog-article') {
     const blogCategoriesDropdown = BLOG_CATEGORIES.map((cat) => ({
       id: `blog-cat-${cat}`,
       label: getBlogCategoryLabel(cat, isBengali),
+      href: '/blog',
       onClick: () => {
         if (onClearSelectedBlog) onClearSelectedBlog();
+        if (onSelectBlogCategory) onSelectBlogCategory(cat);
         onNavigate('blog');
       },
     }));
@@ -424,12 +452,14 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: 'crumb-blog-root',
       label: isBengali ? 'ব্লগ' : 'Blog',
+      href: '/blog',
       icon: BookOpen,
       onClick: () => {
         if (onClearSelectedBlog) onClearSelectedBlog();
+        if (onSelectBlogCategory) onSelectBlogCategory('all');
         onNavigate('blog');
       },
-      isCurrent: !selectedBlog && (!blogCategory || blogCategory === 'all'),
+      isCurrent: activeTab === 'blog' && !selectedBlog && (!blogCategory || blogCategory === 'all'),
       dropdownItems: blogCategoriesDropdown,
     });
 
@@ -438,6 +468,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
       crumbs.push({
         id: `crumb-blog-detail-${selectedBlog.id}`,
         label: locBlog.title,
+        href: `/blog/${selectedBlog.slug}`,
         icon: FileText,
         badge: locBlog.readTime,
         isCurrent: true,
@@ -446,6 +477,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
       crumbs.push({
         id: `crumb-blog-cat-only-${blogCategory}`,
         label: getBlogCategoryLabel(blogCategory, isBengali),
+        href: '/blog',
         icon: Tag,
         isCurrent: true,
       });
@@ -454,6 +486,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: 'crumb-pricing-root',
       label: isBengali ? 'মূল্যতালিকা' : 'Pricing',
+      href: '/pricing',
       icon: DollarSign,
       isCurrent: true,
     });
@@ -461,6 +494,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: 'crumb-about-root',
       label: isBengali ? 'আমাদের পরিচিতি' : 'About TecHisab',
+      href: '/about',
       icon: Users,
       isCurrent: true,
     });
@@ -468,6 +502,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: 'crumb-contact-root',
       label: isBengali ? 'যোগাযোগ' : 'Contact',
+      href: '/contact',
       icon: Mail,
       isCurrent: true,
     });
@@ -475,34 +510,28 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     crumbs.push({
       id: `crumb-legal-${activeTab}`,
       label: isBengali ? LEGAL_LABELS[activeTab].bn : LEGAL_LABELS[activeTab].en,
+      href: `/${activeTab}`,
       icon: Scale,
+      isCurrent: true,
+    });
+  } else if (activeTab === 'not-found') {
+    crumbs.push({
+      id: 'crumb-not-found',
+      label: pick('404 Not Found', '৪০৪ পাওয়া যায়নি'),
       isCurrent: true,
     });
   }
 
-  useEffect(() => {
-    const schemaData = {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: crumbs.map((crumb, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        name: crumb.label,
-        item: `${window.location.origin}${window.location.pathname}#${crumb.id}`,
-      })),
-    };
-
-    let script = document.getElementById('breadcrumb-schema') as HTMLScriptElement | null;
-    if (!script) {
-      script = document.createElement('script');
-      script.id = 'breadcrumb-schema';
-      script.type = 'application/ld+json';
-      document.head.appendChild(script);
-    }
-    script.textContent = JSON.stringify(schemaData);
-  }, [crumbs]);
-
   const handleBackOneLevel = () => {
+    if (activeTab === 'service-detail') {
+      onNavigate('services');
+      return;
+    }
+    if (activeTab === 'blog-article') {
+      if (onClearSelectedBlog) onClearSelectedBlog();
+      onNavigate('blog');
+      return;
+    }
     if (selectedService) {
       onClearSelectedService();
       return;
@@ -539,7 +568,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   const isDeepNested =
     selectedService !== null ||
     selectedCourse !== null ||
-    selectedBlog !== null ||
+    (selectedBlog !== null && activeTab !== 'blog-article') ||
     (activeTab === 'services' && serviceFilter !== 'all');
 
   return (
@@ -582,14 +611,25 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
                     </span>
                   ) : (
                     <div className="relative inline-flex items-center">
-                      <button
-                        type="button"
-                        onClick={crumb.onClick}
-                        className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md text-[#5F6D82] dark:text-slate-400 hover:text-[#0345A4] dark:hover:text-sky-400 font-medium transition-colors cursor-pointer"
-                      >
-                        {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
-                        <span className="truncate max-w-[140px] sm:max-w-[200px]">{crumb.label}</span>
-                      </button>
+                      {crumb.href ? (
+                        <a
+                          href={crumb.href}
+                          onClick={(e) => handleAnchorClick(e, crumb.onClick)}
+                          className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md text-[#5F6D82] dark:text-slate-400 hover:text-[#0345A4] dark:hover:text-sky-400 font-medium transition-colors"
+                        >
+                          {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
+                          <span className="truncate max-w-[140px] sm:max-w-[200px]">{crumb.label}</span>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={crumb.onClick}
+                          className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md text-[#5F6D82] dark:text-slate-400 hover:text-[#0345A4] dark:hover:text-sky-400 font-medium transition-colors cursor-pointer"
+                        >
+                          {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
+                          <span className="truncate max-w-[140px] sm:max-w-[200px]">{crumb.label}</span>
+                        </button>
+                      )}
 
                       {hasDropdown && (
                         <button
@@ -599,6 +639,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
                             setOpenDropdownId(isDropdownOpen ? null : crumb.id);
                           }}
                           className="p-0.5 ml-0.5 text-[#5F6D82] hover:text-[#0345A4] cursor-pointer rounded"
+                          aria-label={pick('Quick switch', 'দ্রুত পরিবর্তন করুন')}
                           title={pick('Quick switch', 'দ্রুত পরিবর্তন করুন')}
                         >
                           <ChevronDown className={`w-3 h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -612,20 +653,20 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
                       {crumb.dropdownItems!.map((drop) => {
                         const DropIcon = drop.icon;
                         return (
-                          <button
+                          <a
                             key={drop.id}
-                            type="button"
-                            onClick={() => {
-                              drop.onClick();
+                            href={drop.href}
+                            onClick={(e) => {
+                              handleAnchorClick(e, drop.onClick);
                               setOpenDropdownId(null);
                             }}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#F4F8FF] dark:hover:bg-slate-800 text-[#0B1730] dark:text-slate-300 hover:text-[#0345A4] text-xs font-medium flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                            className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#F4F8FF] dark:hover:bg-slate-800 text-[#0B1730] dark:text-slate-300 hover:text-[#0345A4] text-xs font-medium flex items-center justify-between gap-2 transition-colors"
                           >
                             <div className="flex items-center gap-1.5 truncate">
                               {DropIcon && <DropIcon className="w-3.5 h-3.5 text-[#5F6D82] shrink-0" />}
                               <span className="truncate">{drop.label}</span>
                             </div>
-                          </button>
+                          </a>
                         );
                       })}
                     </div>

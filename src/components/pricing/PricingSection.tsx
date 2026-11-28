@@ -31,6 +31,7 @@ import { PlanComparisonModal } from './PlanComparisonModal';
 interface PricingSectionProps {
   onSelectPlan: (plan?: PricingTier | ProductPricingItem | ServiceChargeItem, cycle?: 'monthly' | 'annual') => void;
   onNavigateToSoftwareDemo?: (softwareKey: string) => void;
+  isStandalonePage?: boolean;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -54,6 +55,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 export const PricingSection: React.FC<PricingSectionProps> = ({
   onSelectPlan,
   onNavigateToSoftwareDemo,
+  isStandalonePage = false,
 }) => {
   const { isBengali, pick } = useLanguage();
   const { serviceCharges, softwarePricing, pricingTiers } = getLocalizedPricingData(isBengali);
@@ -68,6 +70,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <ScrollReveal direction="up">
           <SectionHeading
+            as={isStandalonePage ? 'h1' : 'h2'}
             badge={pick('Pricing & Plans', 'মূল্যতালিকা ও প্ল্যান')}
             title={pick(
               'Transparent Software, Service & Package Pricing',
@@ -210,9 +213,9 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                     </div>
 
                     <div>
-                      <h4 className="text-lg font-extrabold text-[#0B1730] dark:text-white">
+                      <h3 className="text-lg font-extrabold text-[#0B1730] dark:text-white">
                         {item.softwareName}
-                      </h4>
+                      </h3>
                       <p className="text-xs text-[#5F6D82] dark:text-slate-400 mt-1">
                         {item.subtitle}
                       </p>
@@ -294,9 +297,9 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                     </div>
 
                     <div>
-                      <h4 className="text-lg font-extrabold text-[#0B1730] dark:text-white">
+                      <h3 className="text-lg font-extrabold text-[#0B1730] dark:text-white">
                         {svc.serviceName}
-                      </h4>
+                      </h3>
                       <div className="text-2xl font-black text-[#0345A4] dark:text-sky-400 mt-1 tabular-nums">
                         {svc.startingPrice}
                       </div>
@@ -356,9 +359,9 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                           {pick('Recommended Package', 'প্রস্তাবিত প্যাকেজ')}
                         </span>
                       )}
-                      <h4 className="text-xl font-extrabold text-[#0B1730] dark:text-white">
+                      <h3 className="text-xl font-extrabold text-[#0B1730] dark:text-white">
                         {tier.name}
-                      </h4>
+                      </h3>
                       <p className="text-xs text-[#5F6D82] dark:text-slate-400 mt-1">
                         {tier.tagline || tier.description}
                       </p>
@@ -422,12 +425,12 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
               <HelpCircle className="w-5 h-5" />
             </div>
             <div>
-              <h5 className="text-sm font-bold text-[#0B1730] dark:text-white">
+              <h3 className="text-sm font-bold text-[#0B1730] dark:text-white">
                 {pick(
                   'Need a Custom Retainer, Multi-Branch ERP Rollout, or Training Proposal?',
                   'কাস্টম রিটেইনার, মাল্টি-ব্রাঞ্চ ইআরপি বাস্তবায়ন বা কর্পোরেট প্রশিক্ষণের প্রস্তাবনা প্রয়োজন?'
                 )}
-              </h5>
+              </h3>
               <p className="text-xs text-[#5F6D82] dark:text-slate-400 mt-0.5">
                 {pick(
                   'Share your transaction volume or requirements to receive a tailored written quotation.',

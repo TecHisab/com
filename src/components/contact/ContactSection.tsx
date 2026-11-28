@@ -3,6 +3,7 @@ import { getLocalizedSiteConfig } from '../../data/localizedData';
 import { useLanguage } from '../../context/LanguageContext';
 import { SectionHeading } from '../common/SectionHeading';
 import { SocialLinks } from '../common/SocialLinks';
+import { trackConversion } from '../../utils/analytics';
 import {
   Phone,
   Mail,
@@ -17,7 +18,11 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-export const ContactSection: React.FC = () => {
+interface ContactSectionProps {
+  isStandalonePage?: boolean;
+}
+
+export const ContactSection: React.FC<ContactSectionProps> = ({ isStandalonePage = true }) => {
   const { isBengali, pick } = useLanguage();
   const site = getLocalizedSiteConfig(isBengali);
 
@@ -91,6 +96,11 @@ export const ContactSection: React.FC = () => {
     setGeneralError(null);
     setFieldErrors({});
     setIsPrepared(true);
+    trackConversion('contact_form_submit', {
+      location: '/contact',
+      category: 'lead_inquiry',
+      label: serviceCategory,
+    });
   };
 
   const handleCopySummary = async () => {
@@ -118,6 +128,7 @@ export const ContactSection: React.FC = () => {
     <section id="contact-section" className="py-16" aria-labelledby="contact-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <SectionHeading
+          as={isStandalonePage ? 'h1' : 'h2'}
           badge={pick('Contact TecHisab', 'টেকহিসাবের সাথে যোগাযোগ')}
           title={pick(
             'Connect With Our Accounting, Software & Training Team',
@@ -138,9 +149,9 @@ export const ContactSection: React.FC = () => {
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-[#0B1730] dark:text-white">
+                  <h2 className="text-base font-bold text-[#0B1730] dark:text-white">
                     {pick('Corporate Office', 'কর্পোরেট অফিস')}
-                  </h4>
+                  </h2>
                   <p className="text-xs text-[#5F6D82] dark:text-slate-400">
                     {pick('Chittagong, Bangladesh', 'চট্টগ্রাম, বাংলাদেশ')}
                   </p>
@@ -164,9 +175,9 @@ export const ContactSection: React.FC = () => {
             </div>
 
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-[#D7E2F3] dark:border-slate-800 shadow-xs space-y-4">
-              <h4 className="text-xs font-extrabold text-[#0B1730] dark:text-white uppercase tracking-wider">
+              <h2 className="text-xs font-extrabold text-[#0B1730] dark:text-white uppercase tracking-wider">
                 {pick('Direct Channels', 'সরাসরি যোগাযোগ মাধ্যম')}
-              </h4>
+              </h2>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-[#F4F8FF] dark:bg-slate-800/60 border border-[#D7E2F3]/70 dark:border-slate-700">
                 <div className="flex items-center gap-3">
@@ -177,6 +188,7 @@ export const ContactSection: React.FC = () => {
                     </span>
                     <a
                       href={`tel:${site.contact.phone}`}
+                      onClick={() => trackConversion('phone_click', { location: '/contact', label: 'contact-direct-phone' })}
                       className="text-xs font-bold text-[#0B1730] dark:text-slate-200 hover:text-[#0345A4]"
                     >
                       {site.contact.phoneDisplay}
@@ -197,6 +209,7 @@ export const ContactSection: React.FC = () => {
                     </span>
                     <a
                       href={`mailto:${site.contact.email}`}
+                      onClick={() => trackConversion('email_click', { location: '/contact', label: 'contact-direct-email' })}
                       className="text-xs font-bold text-[#0B1730] dark:text-slate-200 hover:text-[#0345A4]"
                     >
                       {site.contact.email}
@@ -209,6 +222,7 @@ export const ContactSection: React.FC = () => {
                 href={site.contact.whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackConversion('whatsapp_click', { location: '/contact', label: 'contact-direct-whatsapp' })}
                 className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
@@ -250,12 +264,12 @@ export const ContactSection: React.FC = () => {
           {/* Right Column: Structured Consultation Composer */}
           <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-[#D7E2F3] dark:border-slate-800 shadow-xs">
             <div className="border-b border-[#D7E2F3]/80 dark:border-slate-800 pb-4">
-              <h3 id="contact-heading" className="text-lg font-extrabold text-[#0B1730] dark:text-white">
+              <h2 id="contact-heading" className="text-lg font-extrabold text-[#0B1730] dark:text-white">
                 {pick(
                   'Request a Consultation or Software Demo',
                   'পরামর্শ অথবা সফটওয়্যার ডেমোর জন্য বার্তা প্রস্তুত করুন'
                 )}
-              </h3>
+              </h2>
               <p className="text-xs text-[#5F6D82] dark:text-slate-400 mt-1">
                 {pick(
                   'Fill in your requirement below to generate a structured message ready for WhatsApp or Email.',
@@ -271,12 +285,12 @@ export const ContactSection: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <h4 className="text-xl font-bold text-[#0B1730] dark:text-white">
+                  <h3 className="text-xl font-bold text-[#0B1730] dark:text-white">
                     {pick(
                       'Your Consultation Summary Is Ready',
                       'আপনার পরামর্শ বার্তাটি পাঠানোর জন্য প্রস্তুত'
                     )}
-                  </h4>
+                  </h3>
                   <p className="text-xs sm:text-sm text-[#5F6D82] dark:text-slate-300 max-w-md mx-auto">
                     {pick(
                       'Send your structured request directly via WhatsApp for immediate attention, open your email client, or copy the formatted text.',
@@ -294,6 +308,7 @@ export const ContactSection: React.FC = () => {
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() => trackConversion('whatsapp_click', { location: '/contact', label: 'contact-form-whatsapp' })}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs"
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -302,6 +317,7 @@ export const ContactSection: React.FC = () => {
 
                   <a
                     href={mailtoUrl}
+                    onClick={() => trackConversion('email_click', { location: '/contact', label: 'contact-form-email' })}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white text-xs font-bold shadow-xs"
                   >
                     <Mail className="w-4 h-4" />

@@ -3,35 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TecHisab | ITES &amp; FINTEC — Accounting, Finance, Tax &amp; Business Software</title>
+    <title>TecHisab | Accounting, Bookkeeping &amp; Business Technology Solutions in Bangladesh</title>
     <meta
       name="description"
-      content="TecHisab is an ITES &amp; FINTEC company providing Accounting, Finance, Tax &amp; VAT Support, Payroll, BPO, MIS Reporting, Business Software and Practical Technology Training. কাজকে সহজ করুন — Making Business Simple."
+      content="TecHisab provides professional bookkeeping, accounting, payroll, tax and VAT, QuickBooks, business automation, software development and training services in Bangladesh."
     />
     <meta
-      name="keywords"
-      content="TecHisab, Accounting Bangladesh, Finance Advisory Chittagong, Bangladesh Income Tax Return, VAT Mushak Support, Payroll BPO, Business Software Bangladesh, QuickBooks Xero Training, ITES FINTEC"
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
     />
     <link rel="canonical" href="https://www.techisab.com/" />
 
+    <!-- Optional Google Search Console Verification Placeholder (Replace with your verified token from Search Console) -->
+    <!-- <meta name="google-site-verification" content="YOUR_GOOGLE_SITE_VERIFICATION_CODE" /> -->
+
+    <!-- Optional Google Analytics 4 / Tag Manager Placeholders (Replace IDs when ready to activate) -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    -->
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="TecHisab | ITES &amp; FINTEC — Accounting, Finance, Tax &amp; Business Software" />
+    <meta property="og:title" content="TecHisab | Accounting, Bookkeeping &amp; Business Technology Solutions in Bangladesh" />
     <meta
       property="og:description"
-      content="Professional Accounting, Finance, Tax &amp; VAT Support, BPO, MIS Reporting, Business Software and Practical Technology Training. Making Business Simple."
+      content="TecHisab provides professional bookkeeping, accounting, payroll, tax and VAT, QuickBooks, business automation, software development and training services in Bangladesh."
     />
     <meta property="og:site_name" content="TecHisab" />
     <meta property="og:url" content="https://www.techisab.com/" />
-    <meta property="og:image" content="https://www.techisab.com/logo.svg" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://www.techisab.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TecHisab — Accounting, Tax, VAT &amp; Business Technology Solutions in Bangladesh" />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="TecHisab | ITES &amp; FINTEC — Accounting, Finance, Tax &amp; Business Software" />
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TecHisab | Accounting, Bookkeeping &amp; Business Technology Solutions in Bangladesh" />
     <meta
       name="twitter:description"
-      content="Smart Accounting, Finance, Tax &amp; VAT Support, BPO, Business Software and Training Solutions. Making Business Simple."
+      content="TecHisab provides professional bookkeeping, accounting, payroll, tax and VAT, QuickBooks, business automation, software development and training services in Bangladesh."
     />
+    <meta name="twitter:image" content="https://www.techisab.com/og-image.png" />
 
     <!-- Google Fonts: Plus Jakarta Sans + Hind Siliguri (Bengali) + JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,56 +60,126 @@
       rel="stylesheet"
     />
 
-    <!-- Official Brand Mark Favicon -->
+    <!-- Official Brand Mark Icons -->
     <link rel="icon" type="image/svg+xml" href="./logo-mark.svg" />
+    <link rel="icon" href="./favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
 
-    <!-- GitHub Pages SPA Redirect Restoration -->
+    <!-- GitHub Pages SPA Redirect Restoration (Deferred URL sync so relative ./assets/ resolve safely before JS loads) -->
     <script>
       (function (l) {
         if (l.search && l.search.indexOf('?/') === 0) {
           var decoded = l.search
-            .slice(1)
+            .slice(2)
             .split('&')
             .map(function (s) {
               return s.replace(/~and~/g, '&');
             })
             .join('?');
-          var cleanRoute = decoded.replace(/^\//, '').split('?')[0];
-          if (cleanRoute) {
-            window.history.replaceState(null, '', l.pathname.replace(/\/$/, '') + '/#' + cleanRoute);
-          }
+          window.__TECHISAB_REDIRECT_PATH__ = '/' + decoded.replace(/^\/+/, '');
         }
       })(window.location);
     </script>
 
-    <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json">
+    <!-- Initial Structured Data (JSON-LD) -->
+    <script id="techisab-structured-data" type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "ProfessionalService",
-        "name": "TecHisab",
-        "alternateName": "TecHisab ITES & FINTEC",
-        "description": "TecHisab is an ITES & FINTEC company providing professional Accounting, Finance, Bookkeeping, Payroll, Inventory Management, Tax & VAT Support, BPO, MIS Reporting, Business Software, Website Development, Digital Automation and Practical Technology Training services.",
-        "slogan": "কাজকে সহজ করুন - Making Business Simple.",
-        "url": "https://www.techisab.com",
-        "logo": "https://www.techisab.com/logo.svg",
-        "telephone": "+8801556615555",
-        "email": "info@techisab.com",
-        "founder": {
-          "@type": "Person",
-          "name": "M. M. Alam",
-          "jobTitle": "Founder & CEO"
-        },
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Near Hakkani Pump, Naya Bazar Biswa Road More",
-          "addressLocality": "Chittagong",
-          "postalCode": "4216",
-          "addressCountry": "BD"
-        },
-        "sameAs": [
-          "https://facebook.com/TecHishab",
-          "https://instagram.com/TecHishab"
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.techisab.com/#organization",
+            "name": "TecHisab",
+            "alternateName": "TecHisab ITES & FINTEC",
+            "description": "TecHisab is an ITES & FINTEC company providing professional Accounting, Finance, Bookkeeping, Payroll, Inventory Management, Tax & VAT Support, BPO, MIS Reporting, Business Software, Website Development, Digital Automation and Practical Technology Training services.",
+            "slogan": "কাজকে সহজ করুন — Making Business Simple.",
+            "url": "https://www.techisab.com/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.techisab.com/logo.svg"
+            },
+            "image": "https://www.techisab.com/og-image.png",
+            "telephone": "+8801556615555",
+            "email": "info@techisab.com",
+            "founder": {
+              "@type": "Person",
+              "@id": "https://www.techisab.com/#founder-mm-alam",
+              "name": "M. M. Alam",
+              "jobTitle": "Founder & CEO"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Near Hakkani Pump, Naya Bazar Biswa Road More",
+              "addressLocality": "Chattogram",
+              "addressRegion": "Chattogram",
+              "postalCode": "4216",
+              "addressCountry": "BD"
+            },
+            "areaServed": [
+              { "@type": "City", "name": "Chattogram" },
+              { "@type": "City", "name": "Dhaka" },
+              { "@type": "Country", "name": "Bangladesh" },
+              { "@type": "Place", "name": "International (Remote Cloud Accounting & BPO)" }
+            ],
+            "sameAs": [
+              "https://www.facebook.com/TecHishab",
+              "https://www.instagram.com/TecHishab"
+            ]
+          },
+          {
+            "@type": ["ProfessionalService", "AccountingService"],
+            "@id": "https://www.techisab.com/#business",
+            "name": "TecHisab",
+            "url": "https://www.techisab.com/",
+            "image": "https://www.techisab.com/og-image.png",
+            "description": "Accounting, bookkeeping, payroll, tax and VAT, BPO and business technology solutions in Chattogram and across Bangladesh.",
+            "telephone": "+8801556615555",
+            "email": "info@techisab.com",
+            "parentOrganization": { "@id": "https://www.techisab.com/#organization" },
+            "openingHours": "Sa-Th 09:00-19:00",
+            "openingHoursSpecification": [
+              {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": [
+                  "Saturday",
+                  "Sunday",
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday"
+                ],
+                "opens": "09:00",
+                "closes": "19:00"
+              }
+            ],
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Near Hakkani Pump, Naya Bazar Biswa Road More",
+              "addressLocality": "Chattogram",
+              "addressRegion": "Chattogram",
+              "postalCode": "4216",
+              "addressCountry": "BD"
+            },
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Near+Hakkani+Pump+Naya+Bazar+Biswa+Road+More+Chittagong+4216",
+            "areaServed": [
+              { "@type": "City", "name": "Chattogram" },
+              { "@type": "City", "name": "Dhaka" },
+              { "@type": "Country", "name": "Bangladesh" }
+            ],
+            "sameAs": [
+              "https://www.facebook.com/TecHishab",
+              "https://www.instagram.com/TecHishab"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.techisab.com/#website",
+            "url": "https://www.techisab.com/",
+            "name": "TecHisab",
+            "description": "TecHisab provides professional bookkeeping, accounting, payroll, tax and VAT, QuickBooks, business automation, software development and training services in Bangladesh.",
+            "publisher": { "@id": "https://www.techisab.com/#organization" },
+            "inLanguage": "en"
+          }
         ]
       }
     </script>

@@ -20,9 +20,13 @@ import {
 
 interface AboutSectionProps {
   onContactClick?: () => void;
+  isStandalonePage?: boolean;
 }
 
-export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) => {
+export const AboutSection: React.FC<AboutSectionProps> = ({
+  onContactClick,
+  isStandalonePage = false,
+}) => {
   const { isBengali, pick } = useLanguage();
   const site = getLocalizedSiteConfig(isBengali);
 
@@ -153,12 +157,21 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
               {pick('About TecHisab', 'টেকহিসাব পরিচিতি')} &bull; {site.category}
             </p>
 
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1730] dark:text-white tracking-tight leading-tight">
-              {pick(
-                'Making Accounting, Finance & Business Technology Work Together',
-                'হিসাববিজ্ঞান, ফাইন্যান্স এবং ব্যবসায়িক প্রযুক্তির সমন্বিত ও সহজ সমাধান'
-              )}
-            </h2>
+            {isStandalonePage ? (
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0B1730] dark:text-white tracking-tight leading-tight">
+                {pick(
+                  'Making Accounting, Finance & Business Technology Work Together',
+                  'হিসাববিজ্ঞান, ফাইন্যান্স এবং ব্যবসায়িক প্রযুক্তির সমন্বিত ও সহজ সমাধান'
+                )}
+              </h1>
+            ) : (
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1730] dark:text-white tracking-tight leading-tight">
+                {pick(
+                  'Making Accounting, Finance & Business Technology Work Together',
+                  'হিসাববিজ্ঞান, ফাইন্যান্স এবং ব্যবসায়িক প্রযুক্তির সমন্বিত ও সহজ সমাধান'
+                )}
+              </h2>
+            )}
 
             <p className="text-sm sm:text-base text-[#5F6D82] dark:text-slate-300 leading-relaxed">
               {site.description}
@@ -247,9 +260,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
                   <div className="p-2.5 rounded-xl bg-[#F4F8FF] dark:bg-slate-800 text-[#0345A4] dark:text-sky-400 border border-[#D7E2F3] dark:border-slate-700 w-fit">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <h4 className="text-sm sm:text-base font-bold text-[#0B1730] dark:text-white">
+                  <h3 className="text-sm sm:text-base font-bold text-[#0B1730] dark:text-white">
                     {val.title}
-                  </h4>
+                  </h3>
                   <p className="text-xs sm:text-sm text-[#5F6D82] dark:text-slate-400 leading-relaxed">
                     {val.desc}
                   </p>
@@ -337,9 +350,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
               <MapPin className="w-4 h-4" />
               <span>{pick('Office Address', 'অফিসের ঠিকানা')}</span>
             </div>
-            <h4 className="text-xl font-extrabold text-[#0B1730] dark:text-white">
+            <h3 className="text-xl font-extrabold text-[#0B1730] dark:text-white">
               {pick('Chittagong Corporate Office', 'চট্টগ্রাম কর্পোরেট অফিস')}
-            </h4>
+            </h3>
             <p className="text-xs sm:text-sm text-[#5F6D82] dark:text-slate-400 max-w-xl">
               {site.contact.address}{' '}
               {pick(
@@ -351,14 +364,19 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             {onContactClick && (
-              <button
-                type="button"
-                onClick={onContactClick}
+              <a
+                href="/contact"
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {
+                    e.preventDefault();
+                    onContactClick();
+                  }
+                }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0345A4] hover:bg-[#02377F] text-white text-xs font-bold transition-colors cursor-pointer"
               >
                 <span>{pick('Request a Consultation', 'পরামর্শের অনুরোধ করুন')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              </a>
             )}
             <a
               href={site.contact.mapDirectionsUrl}
